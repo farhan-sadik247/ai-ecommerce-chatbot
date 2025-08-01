@@ -1,3 +1,8 @@
+// Import component styles first
+@use '../styles/auth.scss';
+@use '../styles/header.scss';
+@use '../styles/home.scss';
+
 /* Global Styles */
 * {
   margin: 0;
