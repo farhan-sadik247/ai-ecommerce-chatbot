@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface FiltersType {
   category: string;
@@ -25,10 +25,39 @@ interface ProductFiltersProps {
 
 export default function ProductFilters({ filters, availableFilters, onFilterChange }: ProductFiltersProps) {
   const [showFilters, setShowFilters] = useState(false);
+  const [searchInput, setSearchInput] = useState(filters.search);
+
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    (searchTerm: string) => {
+      const timeoutId = setTimeout(() => {
+        const newFilters = { ...filters, search: searchTerm };
+        onFilterChange(newFilters);
+      }, 300); // 300ms delay
+
+      return () => clearTimeout(timeoutId);
+    },
+    [filters, onFilterChange]
+  );
+
+  // Effect to handle search debouncing
+  useEffect(() => {
+    const cleanup = debouncedSearch(searchInput);
+    return cleanup;
+  }, [searchInput, debouncedSearch]);
+
+  // Update local search input when filters change externally
+  useEffect(() => {
+    setSearchInput(filters.search);
+  }, [filters.search]);
 
   const handleFilterChange = (key: string, value: string) => {
     const newFilters = { ...filters, [key]: value };
     onFilterChange(newFilters);
+  };
+
+  const handleSearchInputChange = (value: string) => {
+    setSearchInput(value);
   };
 
   const handleClearFilters = () => {
@@ -42,6 +71,7 @@ export default function ProductFilters({ filters, availableFilters, onFilterChan
       sortBy: 'createdAt',
       sortOrder: 'desc'
     };
+    setSearchInput(''); // Clear local search input
     onFilterChange(clearedFilters);
   };
 
@@ -56,10 +86,15 @@ export default function ProductFilters({ filters, availableFilters, onFilterChan
           <input
             type="text"
             placeholder="Search shoes..."
-            value={filters.search}
-            onChange={(e) => handleFilterChange('search', e.target.value)}
+            value={searchInput}
+            onChange={(e) => handleSearchInputChange(e.target.value)}
             className="search-input"
           />
+          {searchInput !== filters.search && (
+            <div className="search-indicator">
+              <span className="searching-text">Searching...</span>
+            </div>
+          )}
         </div>
 
         <div className="filters-controls">

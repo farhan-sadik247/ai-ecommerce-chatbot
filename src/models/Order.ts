@@ -18,6 +18,14 @@ export interface IShippingAddress {
   country: string;
 }
 
+export interface IPaymentInfo {
+  method: 'bkash' | 'card' | 'cash';
+  bkashPaymentId?: string;
+  bkashTransactionId?: string;
+  bkashInvoiceNumber?: string;
+  paymentDate?: Date;
+}
+
 export interface IOrder extends Document {
   userId: mongoose.Types.ObjectId;
   orderNumber: string;
@@ -26,6 +34,7 @@ export interface IOrder extends Document {
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   shippingAddress: IShippingAddress;
   paymentStatus: 'pending' | 'completed' | 'failed' | 'refunded';
+  paymentInfo: IPaymentInfo;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -91,13 +100,37 @@ const ShippingAddressSchema = new Schema<IShippingAddress>({
     type: String,
     required: [true, 'ZIP code is required'],
     trim: true,
-    match: [/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code']
+    match: [/^\d{4}$/, 'Please enter a valid 4-digit postal code']
   },
   country: {
     type: String,
     required: [true, 'Country is required'],
     trim: true,
     default: 'United States'
+  }
+});
+
+const PaymentInfoSchema = new Schema<IPaymentInfo>({
+  method: {
+    type: String,
+    required: true,
+    enum: {
+      values: ['bkash', 'card', 'cash'],
+      message: 'Payment method must be one of: bkash, card, cash'
+    }
+  },
+  bkashPaymentId: {
+    type: String,
+    required: false
+  },
+  bkashTransactionId: {
+    type: String
+  },
+  bkashInvoiceNumber: {
+    type: String
+  },
+  paymentDate: {
+    type: Date
   }
 });
 
@@ -109,8 +142,7 @@ const OrderSchema = new Schema<IOrder>({
   },
   orderNumber: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   items: [OrderItemSchema],
   totalAmount: {
@@ -139,6 +171,10 @@ const OrderSchema = new Schema<IOrder>({
       message: 'Payment status must be one of: pending, completed, failed, refunded'
     },
     default: 'pending'
+  },
+  paymentInfo: {
+    type: PaymentInfoSchema,
+    required: true
   }
 }, {
   timestamps: true
@@ -146,7 +182,7 @@ const OrderSchema = new Schema<IOrder>({
 
 // Indexes for better query performance
 OrderSchema.index({ userId: 1 });
-OrderSchema.index({ orderNumber: 1 });
+OrderSchema.index({ orderNumber: 1 }, { unique: true });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ createdAt: -1 });
 

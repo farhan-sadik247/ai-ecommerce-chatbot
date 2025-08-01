@@ -54,8 +54,7 @@ const CartSchema = new Schema<ICart>({
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-    unique: true
+    required: true
   },
   items: [CartItemSchema],
   totalAmount: {
@@ -67,8 +66,8 @@ const CartSchema = new Schema<ICart>({
   timestamps: true
 });
 
-// Index for faster user cart lookups
-CartSchema.index({ userId: 1 });
+// Index for faster user cart lookups with uniqueness
+CartSchema.index({ userId: 1 }, { unique: true });
 
 // Calculate total amount
 CartSchema.methods.calculateTotal = async function(): Promise<number> {

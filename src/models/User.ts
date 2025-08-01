@@ -14,7 +14,6 @@ const UserSchema = new Schema<IUser>({
   email: {
     type: String,
     required: [true, 'Email is required'],
-    unique: true,
     lowercase: true,
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
@@ -34,8 +33,8 @@ const UserSchema = new Schema<IUser>({
   timestamps: true
 });
 
-// Index for faster email lookups
-UserSchema.index({ email: 1 });
+// Index for faster email lookups and uniqueness
+UserSchema.index({ email: 1 }, { unique: true });
 
 // Hash password before saving
 UserSchema.pre('save', async function(next) {

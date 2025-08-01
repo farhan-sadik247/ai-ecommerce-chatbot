@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     
     // Get query parameters
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '12');
+    const limit = parseInt(searchParams.get('limit') || '9');
     const category = searchParams.get('category');
     const brand = searchParams.get('brand');
     const gender = searchParams.get('gender');

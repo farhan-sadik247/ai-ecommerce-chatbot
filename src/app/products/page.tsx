@@ -1,33 +1,36 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from 'react';
 import ProductGrid from '@/components/products/ProductGrid';
 import { Product } from '@/types';
 
 export default function ProductsPage() {
-  const { user } = useAuth();
-
-  const handleAddToCart = (product: Product) => {
-    if (!user) {
-      alert('Please login to add items to cart');
-      return;
-    }
-    
-    // TODO: Implement add to cart functionality
-    console.log('Adding to cart:', product);
-    alert(`Added ${product.name} to cart!`);
-  };
-
   const handleViewDetails = (product: Product) => {
     // TODO: Implement product details modal or navigation
     console.log('Viewing details for:', product);
     alert(`Viewing details for ${product.name}`);
   };
 
+  // Auto-seed products if database is empty
+  useEffect(() => {
+    const checkAndSeedProducts = async () => {
+      try {
+        const response = await fetch('/api/seed');
+        const data = await response.json();
+        if (data.seeded) {
+          console.log('Products seeded:', data.message);
+        }
+      } catch (error) {
+        console.error('Failed to check/seed products:', error);
+      }
+    };
+
+    checkAndSeedProducts();
+  }, []);
+
   return (
     <div className="container">
       <ProductGrid
-        onAddToCart={handleAddToCart}
         onViewDetails={handleViewDetails}
       />
     </div>

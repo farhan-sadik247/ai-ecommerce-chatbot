@@ -4,11 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/auth/AuthModal';
+import CartIcon from '@/components/cart/CartIcon';
+import CartModal from '@/components/cart/CartModal';
 
 export default function Header() {
   const { user, logout, loading } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [cartModalOpen, setCartModalOpen] = useState(false);
 
   const handleAuthClick = (mode: 'login' | 'register') => {
     setAuthMode(mode);
@@ -17,6 +20,15 @@ export default function Header() {
 
   const handleLogout = async () => {
     await logout();
+  };
+
+  const handleCartClick = () => {
+    setCartModalOpen(true);
+  };
+
+  const handleCheckout = () => {
+    setCartModalOpen(false);
+    window.location.href = '/checkout';
   };
 
   return (
@@ -35,6 +47,16 @@ export default function Header() {
               <Link href="/products" className="nav-link">
                 Products
               </Link>
+              {user && (
+                <>
+                  <Link href="/orders" className="nav-link">
+                    My Orders
+                  </Link>
+                  <Link href="/cart" className="nav-link">
+                    Cart
+                  </Link>
+                </>
+              )}
             </div>
 
             <nav className="nav">
@@ -42,6 +64,7 @@ export default function Header() {
                 <div className="loading">Loading...</div>
               ) : user ? (
                 <div className="user-menu">
+                  <CartIcon onClick={handleCartClick} />
                   <span className="welcome">Welcome, {user.name}!</span>
                   <button onClick={handleLogout} className="logout-btn">
                     Logout
@@ -49,14 +72,14 @@ export default function Header() {
                 </div>
               ) : (
                 <div className="auth-buttons">
-                  <button 
-                    onClick={() => handleAuthClick('login')} 
+                  <button
+                    onClick={() => handleAuthClick('login')}
                     className="login-btn"
                   >
                     Login
                   </button>
-                  <button 
-                    onClick={() => handleAuthClick('register')} 
+                  <button
+                    onClick={() => handleAuthClick('register')}
                     className="register-btn"
                   >
                     Register
@@ -76,6 +99,12 @@ export default function Header() {
           window.location.reload();
         }}
         initialMode={authMode}
+      />
+
+      <CartModal
+        isOpen={cartModalOpen}
+        onClose={() => setCartModalOpen(false)}
+        onCheckout={handleCheckout}
       />
     </>
   );

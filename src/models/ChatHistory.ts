@@ -139,7 +139,7 @@ ChatHistorySchema.methods.getRecentMessages = function(limit: number = 10): ICha
     .slice(0, limit);
 };
 
-// Create compound index for user and session
+// Create compound index for user and session (moved to end to avoid conflicts)
 ChatHistorySchema.index({ userId: 1, sessionId: 1 }, { unique: true });
 
 export default mongoose.models.ChatHistory || mongoose.model<IChatHistory>('ChatHistory', ChatHistorySchema);

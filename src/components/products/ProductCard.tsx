@@ -1,45 +1,58 @@
 'use client';
 
 import Image from 'next/image';
+import { useState, useCallback } from 'react';
 import { Product } from '@/types';
+import AddToCartModal from '@/components/cart/AddToCartModal';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart?: (product: Product) => void;
   onViewDetails?: (product: Product) => void;
 }
 
-export default function ProductCard({ product, onAddToCart, onViewDetails }: ProductCardProps) {
-  const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart(product);
-    }
-  };
+export default function ProductCard({ product, onViewDetails }: ProductCardProps) {
+  const [addToCartModalOpen, setAddToCartModalOpen] = useState(false);
 
-  const handleViewDetails = () => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAddToCartModalOpen(true);
+  }, []);
+
+  const handleViewDetails = useCallback(() => {
     if (onViewDetails) {
       onViewDetails(product);
     }
-  };
+  }, [onViewDetails, product]);
+
+  const handleAddToCartSuccess = useCallback(() => {
+    // Could show a success message here
+    console.log('Item added to cart successfully!');
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setAddToCartModalOpen(false);
+  }, []);
 
   return (
-    <div className="product-card">
-      <div className="product-image">
-        <Image
-          src={product.image}
-          alt={product.name}
-          width={300}
-          height={300}
-          className="image"
-          priority={false}
-        />
-        {product.stock <= 5 && product.stock > 0 && (
-          <div className="low-stock-badge">Only {product.stock} left!</div>
-        )}
-        {product.stock === 0 && (
-          <div className="out-of-stock-badge">Out of Stock</div>
-        )}
-      </div>
+    <div className="product-card-wrapper">
+      <div className="product-card">
+        <div className="product-image">
+          <Image
+            src={product.image}
+            alt={product.name}
+            width={300}
+            height={300}
+            className="image"
+            priority={false}
+          />
+          {product.stock <= 5 && product.stock > 0 && (
+            <div className="low-stock-badge">Only {product.stock} left!</div>
+          )}
+          {product.stock === 0 && (
+            <div className="out-of-stock-badge">Out of Stock</div>
+          )}
+        </div>
 
       <div className="product-info">
         <div className="product-header">
@@ -95,7 +108,7 @@ export default function ProductCard({ product, onAddToCart, onViewDetails }: Pro
             >
               View Details
             </button>
-            <button 
+            <button
               onClick={handleAddToCart}
               disabled={product.stock === 0}
               className="add-to-cart-btn"
@@ -104,6 +117,14 @@ export default function ProductCard({ product, onAddToCart, onViewDetails }: Pro
             </button>
           </div>
         </div>
+      </div>
+
+      <AddToCartModal
+        product={product}
+        isOpen={addToCartModalOpen}
+        onClose={handleCloseModal}
+        onSuccess={handleAddToCartSuccess}
+      />
       </div>
     </div>
   );

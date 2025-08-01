@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import ProductCard from './ProductCard';
-import ProductFilters from './ProductFilters';
+
 import { Product, ApiResponse } from '@/types';
+import ProductFilters from './ProductFilters';
 
 interface ProductGridProps {
-  onAddToCart?: (product: Product) => void;
   onViewDetails?: (product: Product) => void;
 }
 
@@ -26,9 +26,9 @@ interface ProductsData {
   };
 }
 
-export default function ProductGrid({ onAddToCart, onViewDetails }: ProductGridProps) {
+export default function ProductGrid({ onViewDetails }: ProductGridProps) {
   const [productsData, setProductsData] = useState<ProductsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
@@ -42,20 +42,48 @@ export default function ProductGrid({ onAddToCart, onViewDetails }: ProductGridP
     sortOrder: 'desc'
   });
 
+  // Use abort controller to cancel ongoing requests
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const fetchProducts = useCallback(async () => {
+    // Cancel any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    const params = new URLSearchParams({
+      page: currentPage.toString(),
+      limit: '9'
+    });
+
+
+
+    // Add non-empty filter values
+    if (filters.category) params.append('category', filters.category);
+    if (filters.brand) params.append('brand', filters.brand);
+    if (filters.gender) params.append('gender', filters.gender);
+    if (filters.minPrice) params.append('minPrice', filters.minPrice);
+    if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+    if (filters.search) params.append('search', filters.search);
+    if (filters.sortBy) params.append('sortBy', filters.sortBy);
+    if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
+
     setLoading(true);
     setError('');
 
     try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '12',
-        ...Object.fromEntries(
-          Object.entries(filters).filter(([, value]) => value !== '')
-        )
+      const response = await fetch(`/api/products?${params}`, {
+        signal: abortController.signal
       });
 
-      const response = await fetch(`/api/products?${params}`);
+      if (abortController.signal.aborted) {
+        return;
+      }
+
       const data: ApiResponse<ProductsData> = await response.json();
 
       if (data.success && data.data) {
@@ -63,21 +91,53 @@ export default function ProductGrid({ onAddToCart, onViewDetails }: ProductGridP
       } else {
         setError(data.error || 'Failed to fetch products');
       }
-    } catch {
-      setError('Network error. Please try again.');
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        return;
+      }
+      console.error('Fetch products error:', error);
+      setError('Failed to fetch products');
     } finally {
       setLoading(false);
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+      }
     }
-  }, [currentPage, filters]);
+  }, [
+    currentPage,
+    filters.category,
+    filters.brand,
+    filters.gender,
+    filters.minPrice,
+    filters.maxPrice,
+    filters.search,
+    filters.sortBy,
+    filters.sortOrder
+  ]);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-  const handleFilterChange = (newFilters: typeof filters) => {
-    setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filters change
-  };
+
+
+  // Cleanup effect to cancel ongoing requests
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  const handleFilterChange = useCallback((newFilters: typeof filters) => {
+    // Only reset page if filters actually changed
+    const filtersChanged = JSON.stringify(filters) !== JSON.stringify(newFilters);
+    if (filtersChanged) {
+      setFilters(newFilters);
+      setCurrentPage(1); // Reset to first page when filters change
+    }
+  }, [filters]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -145,7 +205,6 @@ export default function ProductGrid({ onAddToCart, onViewDetails }: ProductGridP
                 <ProductCard
                   key={product._id}
                   product={product}
-                  onAddToCart={onAddToCart}
                   onViewDetails={onViewDetails}
                 />
               ))}
@@ -154,7 +213,7 @@ export default function ProductGrid({ onAddToCart, onViewDetails }: ProductGridP
             {productsData.pagination.totalPages > 1 && (
               <div className="pagination">
                 <button
-                  onClick={() => handlePageChange(currentPage - 1)}
+                  onClick={() => handlePageChange(productsData.pagination.currentPage - 1)}
                   disabled={!productsData.pagination.hasPrevPage}
                   className="pagination-btn"
                 >
@@ -166,7 +225,7 @@ export default function ProductGrid({ onAddToCart, onViewDetails }: ProductGridP
                 </div>
 
                 <button
-                  onClick={() => handlePageChange(currentPage + 1)}
+                  onClick={() => handlePageChange(productsData.pagination.currentPage + 1)}
                   disabled={!productsData.pagination.hasNextPage}
                   className="pagination-btn"
                 >
