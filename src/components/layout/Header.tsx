@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/auth/AuthModal';
 
@@ -24,8 +25,16 @@ export default function Header() {
         <div className="container">
           <div className="header-content">
             <div className="logo">
-              <h1>ShoeBot</h1>
-              <span>AI Shopping Assistant</span>
+              <Link href="/">
+                <h1>ShoeBot</h1>
+                <span>AI Shopping Assistant</span>
+              </Link>
+            </div>
+
+            <div className="nav-links">
+              <Link href="/products" className="nav-link">
+                Products
+              </Link>
             </div>
 
             <nav className="nav">

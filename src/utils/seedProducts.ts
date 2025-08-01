@@ -2,12 +2,13 @@ import connectDB from '@/lib/mongodb';
 import { Product } from '@/models';
 
 const sampleProducts = [
+  // Sneakers
   {
-    name: "Nike Air Max 270",
-    description: "Comfortable running shoes with excellent cushioning and breathable design.",
+    name: "Nike Air Max Classic",
+    description: "Comfortable running sneakers with excellent cushioning and breathable design.",
     price: 150.00,
-    image: "/images/nike-air-max-270.jpg",
-    category: "running",
+    image: "/assets/sneakers/image250.jpg",
+    category: "sneakers",
     sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"],
     colors: ["black", "white", "red"],
     stock: 25,
@@ -15,11 +16,11 @@ const sampleProducts = [
     gender: "unisex"
   },
   {
-    name: "Adidas Ultraboost 22",
-    description: "Premium running shoes with responsive cushioning and energy return.",
+    name: "Adidas Ultraboost Pro",
+    description: "Premium running sneakers with responsive cushioning and energy return.",
     price: 180.00,
-    image: "/images/adidas-ultraboost-22.jpg",
-    category: "running",
+    image: "/assets/sneakers/image251.jpg",
+    category: "sneakers",
     sizes: ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5"],
     colors: ["black", "white", "blue"],
     stock: 30,
@@ -27,11 +28,11 @@ const sampleProducts = [
     gender: "unisex"
   },
   {
-    name: "Converse Chuck Taylor All Star",
+    name: "Converse Chuck Taylor",
     description: "Classic casual sneakers perfect for everyday wear.",
     price: 65.00,
-    image: "/images/converse-chuck-taylor.jpg",
-    category: "casual",
+    image: "/assets/sneakers/image252.jpg",
+    category: "sneakers",
     sizes: ["5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"],
     colors: ["black", "white", "red", "navy"],
     stock: 40,
@@ -40,10 +41,10 @@ const sampleProducts = [
   },
   {
     name: "Vans Old Skool",
-    description: "Iconic skate shoes with durable construction and classic style.",
+    description: "Iconic skate sneakers with durable construction and classic style.",
     price: 70.00,
-    image: "/images/vans-old-skool.jpg",
-    category: "casual",
+    image: "/assets/sneakers/image253.jpg",
+    category: "sneakers",
     sizes: ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"],
     colors: ["black", "white", "checkered"],
     stock: 35,
@@ -51,34 +52,10 @@ const sampleProducts = [
     gender: "unisex"
   },
   {
-    name: "Dr. Martens 1460",
-    description: "Classic leather boots with air-cushioned sole and durable construction.",
-    price: 170.00,
-    image: "/images/dr-martens-1460.jpg",
-    category: "boots",
-    sizes: ["6", "7", "8", "9", "10", "11", "12"],
-    colors: ["black", "brown", "cherry red"],
-    stock: 20,
-    brand: "Dr. Martens",
-    gender: "unisex"
-  },
-  {
-    name: "New Balance 990v5",
-    description: "Premium running shoes made in USA with superior comfort and support.",
-    price: 185.00,
-    image: "/images/new-balance-990v5.jpg",
-    category: "running",
-    sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12"],
-    colors: ["grey", "navy", "black"],
-    stock: 28,
-    brand: "New Balance",
-    gender: "unisex"
-  },
-  {
-    name: "Jordan Air Jordan 1 Retro High",
+    name: "Jordan Air Classic",
     description: "Iconic basketball sneakers with premium leather and classic design.",
     price: 170.00,
-    image: "/images/jordan-air-jordan-1.jpg",
+    image: "/assets/sneakers/image254.jpg",
     category: "sneakers",
     sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12"],
     colors: ["black/red", "white/black", "royal blue"],
@@ -87,10 +64,10 @@ const sampleProducts = [
     gender: "unisex"
   },
   {
-    name: "Puma RS-X",
-    description: "Retro-inspired running shoes with bold design and comfortable fit.",
+    name: "Puma RS-X Retro",
+    description: "Retro-inspired running sneakers with bold design and comfortable fit.",
     price: 110.00,
-    image: "/images/puma-rs-x.jpg",
+    image: "/assets/sneakers/image255.jpg",
     category: "sneakers",
     sizes: ["6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"],
     colors: ["white/blue", "black/yellow", "grey/orange"],
@@ -99,10 +76,48 @@ const sampleProducts = [
     gender: "unisex"
   },
   {
-    name: "Timberland 6-Inch Premium Boot",
+    name: "New Balance 990",
+    description: "Premium running sneakers made with superior comfort and support.",
+    price: 185.00,
+    image: "/assets/sneakers/image256.jpg",
+    category: "sneakers",
+    sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12"],
+    colors: ["grey", "navy", "black"],
+    stock: 28,
+    brand: "New Balance",
+    gender: "unisex"
+  },
+  {
+    name: "Reebok Classic Leather",
+    description: "Timeless casual sneakers with soft leather upper and comfortable fit.",
+    price: 75.00,
+    image: "/assets/sneakers/image257.jpg",
+    category: "sneakers",
+    sizes: ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"],
+    colors: ["white", "black", "grey"],
+    stock: 38,
+    brand: "Reebok",
+    gender: "unisex"
+  },
+
+  // Boots
+  {
+    name: "Dr. Martens 1460",
+    description: "Classic leather boots with air-cushioned sole and durable construction.",
+    price: 170.00,
+    image: "/assets/boots/image250.jpg",
+    category: "boots",
+    sizes: ["6", "7", "8", "9", "10", "11", "12"],
+    colors: ["black", "brown", "cherry red"],
+    stock: 20,
+    brand: "Dr. Martens",
+    gender: "unisex"
+  },
+  {
+    name: "Timberland 6-Inch Premium",
     description: "Waterproof leather boots perfect for outdoor activities and work.",
     price: 200.00,
-    image: "/images/timberland-6-inch.jpg",
+    image: "/assets/boots/image251.jpg",
     category: "boots",
     sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12"],
     colors: ["wheat", "black", "brown"],
@@ -111,15 +126,117 @@ const sampleProducts = [
     gender: "unisex"
   },
   {
-    name: "Reebok Classic Leather",
-    description: "Timeless casual sneakers with soft leather upper and comfortable fit.",
-    price: 75.00,
-    image: "/images/reebok-classic-leather.jpg",
+    name: "Red Wing Iron Ranger",
+    description: "Heritage work boots with premium leather and Goodyear welt construction.",
+    price: 320.00,
+    image: "/assets/boots/image252.jpg",
+    category: "boots",
+    sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12"],
+    colors: ["amber", "black", "copper"],
+    stock: 15,
+    brand: "Red Wing",
+    gender: "unisex"
+  },
+  {
+    name: "UGG Classic Short",
+    description: "Cozy sheepskin boots perfect for cold weather and casual wear.",
+    price: 160.00,
+    image: "/assets/boots/image254.jpg",
+    category: "boots",
+    sizes: ["5", "6", "7", "8", "9", "10", "11"],
+    colors: ["chestnut", "black", "grey"],
+    stock: 25,
+    brand: "UGG",
+    gender: "women"
+  },
+  {
+    name: "Caterpillar Second Shift",
+    description: "Steel toe work boots with slip-resistant sole and electrical hazard protection.",
+    price: 140.00,
+    image: "/assets/boots/image255.jpg",
+    category: "boots",
+    sizes: ["7", "8", "9", "10", "11", "12", "13"],
+    colors: ["black", "brown"],
+    stock: 22,
+    brand: "Caterpillar",
+    gender: "men"
+  },
+
+  // Sandals
+  {
+    name: "Birkenstock Arizona",
+    description: "Classic two-strap sandals with contoured cork footbed for all-day comfort.",
+    price: 135.00,
+    image: "/assets/sandals/image250.jpg",
+    category: "sandals",
+    sizes: ["6", "7", "8", "9", "10", "11", "12"],
+    colors: ["brown", "black", "white"],
+    stock: 30,
+    brand: "Birkenstock",
+    gender: "unisex"
+  },
+  {
+    name: "Teva Universal Trail",
+    description: "Adventure-ready sandals with quick-dry webbing and rugged sole.",
+    price: 70.00,
+    image: "/assets/sandals/image251.jpg",
+    category: "sandals",
+    sizes: ["6", "7", "8", "9", "10", "11", "12"],
+    colors: ["black", "navy", "olive"],
+    stock: 25,
+    brand: "Teva",
+    gender: "unisex"
+  },
+
+  // Loafers
+  {
+    name: "Cole Haan Pinch Penny",
+    description: "Classic leather penny loafers perfect for business casual and formal wear.",
+    price: 180.00,
+    image: "/assets/loafers/image250.jpg",
+    category: "formal",
+    sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12"],
+    colors: ["black", "brown", "cognac"],
+    stock: 20,
+    brand: "Cole Haan",
+    gender: "men"
+  },
+  {
+    name: "Sperry Top-Sider",
+    description: "Classic boat shoes with non-slip sole and premium leather construction.",
+    price: 95.00,
+    image: "/assets/loafers/image251.jpg",
     category: "casual",
-    sizes: ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"],
-    colors: ["white", "black", "grey"],
-    stock: 38,
-    brand: "Reebok",
+    sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12"],
+    colors: ["brown", "navy", "tan"],
+    stock: 28,
+    brand: "Sperry",
+    gender: "unisex"
+  },
+
+  // Soccer Shoes
+  {
+    name: "Nike Mercurial Vapor",
+    description: "Lightweight soccer cleats designed for speed and agility on the field.",
+    price: 220.00,
+    image: "/assets/soccer_shoes/image250.jpg",
+    category: "sports",
+    sizes: ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5"],
+    colors: ["black", "white", "neon green"],
+    stock: 18,
+    brand: "Nike",
+    gender: "unisex"
+  },
+  {
+    name: "Adidas Predator Edge",
+    description: "Control-focused soccer boots with textured upper for enhanced ball grip.",
+    price: 200.00,
+    image: "/assets/soccer_shoes/image251.jpg",
+    category: "sports",
+    sizes: ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5"],
+    colors: ["black/red", "white/blue", "solar yellow"],
+    stock: 20,
+    brand: "Adidas",
     gender: "unisex"
   }
 ];

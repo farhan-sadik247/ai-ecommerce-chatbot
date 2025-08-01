@@ -19,6 +19,8 @@ export interface Product {
   sizes: string[];
   colors: string[];
   stock: number;
+  brand: string;
+  gender: 'men' | 'women' | 'unisex';
   createdAt: Date;
   updatedAt: Date;
 }
