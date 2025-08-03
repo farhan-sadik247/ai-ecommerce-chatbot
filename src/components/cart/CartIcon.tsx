@@ -42,7 +42,6 @@ export default function CartIcon({ onClick }: CartIconProps) {
           <div className="cart-loading-indicator"></div>
         )}
       </div>
-      <span className="cart-text">Cart</span>
     </button>
   );
 }

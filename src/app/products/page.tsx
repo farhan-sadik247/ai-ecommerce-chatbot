@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import ProductGrid from '@/components/products/ProductGrid';
 import { Product } from '@/types';
 
 export default function ProductsPage() {
+  const router = useRouter();
+
   const handleViewDetails = (product: Product) => {
-    // TODO: Implement product details modal or navigation
-    console.log('Viewing details for:', product);
-    alert(`Viewing details for ${product.name}`);
+    router.push(`/products/${product._id}`);
   };
 
   // Auto-seed products if database is empty

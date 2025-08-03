@@ -5,6 +5,14 @@ export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
+  phone?: string;
+  shippingAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -28,6 +36,34 @@ const UserSchema = new Schema<IUser>({
     required: [true, 'Name is required'],
     trim: true,
     maxlength: [50, 'Name cannot exceed 50 characters']
+  },
+  phone: {
+    type: String,
+    trim: true,
+    maxlength: [20, 'Phone number cannot exceed 20 characters']
+  },
+  shippingAddress: {
+    street: {
+      type: String,
+      trim: true
+    },
+    city: {
+      type: String,
+      trim: true
+    },
+    state: {
+      type: String,
+      trim: true
+    },
+    zipCode: {
+      type: String,
+      trim: true
+    },
+    country: {
+      type: String,
+      trim: true,
+      default: 'Bangladesh'
+    }
   }
 }, {
   timestamps: true

@@ -61,18 +61,11 @@ const ChatMessageSchema = new Schema<IChatMessage>({
     },
     category: {
       type: String,
-      trim: true,
-      enum: {
-        values: ['running', 'casual', 'formal', 'sports', 'boots', 'sandals', 'sneakers', ''],
-        message: 'Invalid category'
-      }
+      trim: true
     },
     size: {
       type: String,
-      enum: {
-        values: ['5', '5.5', '6', '6.5', '7', '7.5', '8', '8.5', '9', '9.5', '10', '10.5', '11', '11.5', '12', '12.5', '13', ''],
-        message: 'Invalid shoe size'
-      }
+      trim: true
     },
     color: {
       type: String,

@@ -17,7 +17,7 @@ A conversational e-commerce web application for purchasing shoes, built with Nex
 - **Frontend**: Next.js 15, React, TypeScript, SCSS
 - **Backend**: Next.js API Routes, Node.js
 - **Database**: MongoDB with Mongoose
-- **AI**: OpenAI GPT API
+- **AI**: Groq API (Llama 3.1 8B Instant)
 - **Authentication**: NextAuth.js
 - **Styling**: SCSS (Sass)
 
@@ -27,7 +27,7 @@ A conversational e-commerce web application for purchasing shoes, built with Nex
 
 - Node.js 18+
 - MongoDB (local or Atlas)
-- OpenAI API key
+- Groq API key
 
 ### Installation
 
@@ -46,7 +46,7 @@ npm install
 Create a `.env.local` file in the root directory and add:
 ```env
 MONGODB_URI=mongodb://localhost:27017/ai-ecommerce-chatbot
-OPENAI_API_KEY=your_openai_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your_nextauth_secret_here
 JWT_SECRET=your_jwt_secret_here

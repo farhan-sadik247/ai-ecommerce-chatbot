@@ -4,6 +4,14 @@ export interface User {
   email: string;
   password: string;
   name: string;
+  phone?: string;
+  shippingAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -89,13 +97,14 @@ export interface ApiResponse<T = unknown> {
 }
 
 // Chat Intent Types
-export type ChatIntent = 
+export type ChatIntent =
   | 'browse_products'
   | 'add_to_cart'
   | 'remove_from_cart'
   | 'view_cart'
   | 'checkout'
   | 'general_inquiry'
+  | 'greeting'
   | 'unknown';
 
 export interface ChatIntentResult {
