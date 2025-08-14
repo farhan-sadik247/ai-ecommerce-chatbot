@@ -312,6 +312,160 @@ const sampleProducts = [
     stock: 30,
     brand: "Asics",
     gender: "unisex"
+  },
+
+  // Flip Flops
+  {
+    name: "Havaianas Brazil Classic",
+    description: "Original Brazilian flip flops with comfortable rubber sole and vibrant colors.",
+    price: 25.00,
+    image: "/assets/flip_flops/image250.jpeg",
+  category: "sandals",
+    sizes: ["6", "7", "8", "9", "10", "11", "12"],
+    colors: ["blue", "black", "white", "red"],
+    stock: 60,
+    brand: "Havaianas",
+    gender: "unisex"
+  },
+  {
+    name: "Reef Fanning Bottle Opener",
+    description: "Durable flip flops with built-in bottle opener in the sole.",
+    price: 50.00,
+    image: "/assets/flip_flops/image251.png",
+  category: "sandals",
+    sizes: ["7", "8", "9", "10", "11", "12"],
+    colors: ["brown", "black", "grey"],
+    stock: 45,
+    brand: "Reef",
+    gender: "men"
+  },
+  {
+    name: "Rainbow Single Layer",
+    description: "Premium leather flip flops that mold to your feet for custom comfort.",
+    price: 45.00,
+    image: "/assets/flip_flops/image252.jpeg",
+  category: "sandals",
+    sizes: ["6", "7", "8", "9", "10", "11", "12"],
+    colors: ["brown", "black", "tan"],
+    stock: 35,
+    brand: "Rainbow",
+    gender: "unisex"
+  },
+
+  // Additional Boots
+  {
+    name: "Wolverine 1000 Mile",
+    description: "Heritage work boots with Horween leather and Goodyear welt construction.",
+    price: 350.00,
+    image: "/assets/boots/image256.jpg",
+    category: "boots",
+    sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12"],
+    colors: ["brown", "black", "rust"],
+    stock: 12,
+    brand: "Wolverine",
+    gender: "men"
+  },
+  {
+    name: "Sorel Caribou",
+    description: "Waterproof winter boots with removable felt liner for extreme cold weather.",
+    price: 160.00,
+    image: "/assets/boots/image258.jpeg",
+    category: "boots",
+    sizes: ["6", "7", "8", "9", "10", "11", "12"],
+    colors: ["brown", "black", "grey"],
+    stock: 20,
+    brand: "Sorel",
+    gender: "unisex"
+  },
+  {
+    name: "Chelsea Boot Classic",
+    description: "Elegant ankle boots with elastic side panels for easy slip-on wear.",
+    price: 180.00,
+    image: "/assets/boots/image259.jpeg",
+    category: "boots",
+    sizes: ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"],
+    colors: ["black", "brown", "tan"],
+    stock: 25,
+    brand: "Generic",
+    gender: "unisex"
+  },
+
+  // Additional Sandals
+  {
+    name: "Chaco Z/1 Classic",
+    description: "Adventure sandals with LUVSEAT footbed and adjustable polyester straps.",
+    price: 105.00,
+    image: "/assets/sandals/image252.jpeg",
+    category: "sandals",
+    sizes: ["6", "7", "8", "9", "10", "11", "12"],
+    colors: ["black", "brown", "navy"],
+    stock: 28,
+    brand: "Chaco",
+    gender: "unisex"
+  },
+  {
+    name: "Keen Newport H2",
+    description: "Hybrid water sandals with toe protection and secure fit for outdoor adventures.",
+    price: 120.00,
+    image: "/assets/sandals/image253.jpeg",
+    category: "sandals",
+    sizes: ["6", "7", "8", "9", "10", "11", "12"],
+    colors: ["black", "grey", "brown"],
+    stock: 22,
+    brand: "Keen",
+    gender: "unisex"
+  },
+
+  // Additional Loafers
+  {
+    name: "Gucci Horsebit Loafer",
+    description: "Luxury leather loafers with iconic horsebit detail and premium craftsmanship.",
+    price: 680.00,
+    image: "/assets/loafers/image252.jpeg",
+    category: "formal",
+    sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"],
+    colors: ["black", "brown", "burgundy"],
+    stock: 8,
+    brand: "Gucci",
+    gender: "men"
+  },
+  {
+    name: "Clarks Wallabee",
+    description: "Iconic moccasin-style shoes with crepe sole and suede upper.",
+    price: 150.00,
+    image: "/assets/loafers/image253.jpeg",
+    category: "casual",
+    sizes: ["7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5"],
+    colors: ["tan", "grey", "black"],
+    stock: 30,
+    brand: "Clarks",
+    gender: "unisex"
+  },
+
+  // Additional Soccer Shoes
+  {
+    name: "Puma Future Z",
+    description: "Innovative soccer boots with adaptive FUZIONFIT compression band.",
+    price: 180.00,
+    image: "/assets/soccer_shoes/image252.png",
+    category: "sports",
+    sizes: ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"],
+    colors: ["neon yellow", "black/orange", "white/blue"],
+    stock: 16,
+    brand: "Puma",
+    gender: "unisex"
+  },
+  {
+    name: "Under Armour Magnetico",
+    description: "Precision soccer cleats with FormTrue upper for enhanced ball control.",
+    price: 160.00,
+    image: "/assets/soccer_shoes/image253.jpeg",
+    category: "sports",
+    sizes: ["6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11"],
+    colors: ["black", "white", "red"],
+    stock: 19,
+    brand: "Under Armour",
+    gender: "unisex"
   }
 ];
 
