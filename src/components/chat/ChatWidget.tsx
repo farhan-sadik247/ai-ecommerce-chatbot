@@ -263,7 +263,7 @@ export default function ChatWidget({ className }: ChatWidgetProps) {
                 </div>
                 <div className="message-content">
                   <div className="message-bubble">
-                    Hello! I'm your AI ShoeBot Assistant. Please <strong>Log In</strong> or <strong>Register</strong> using the buttons in the top right to start chatting with me and find your perfect pair of shoes!
+                    Hello! I&apos;m your AI ShoeBot Assistant. Please <strong>Log In</strong> or <strong>Register</strong> using the buttons in the top right to start chatting with me and find your perfect pair of shoes!
                   </div>
                 </div>
               </div>
