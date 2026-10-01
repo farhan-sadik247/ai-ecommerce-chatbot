@@ -8,9 +8,9 @@ interface CartContextType {
   cart: Cart | null;
   loading: boolean;
   itemCount: number;
-  addToCart: (productId: string, quantity: number, size: string, color: string) => Promise<boolean>;
-  removeFromCart: (productId: string, size: string, color: string) => Promise<boolean>;
-  updateQuantity: (productId: string, size: string, color: string, quantity: number) => Promise<boolean>;
+  addToCart: (productId: string, quantity: number, size: string) => Promise<boolean>;
+  removeFromCart: (productId: string, size: string) => Promise<boolean>;
+  updateQuantity: (productId: string, size: string, quantity: number) => Promise<boolean>;
   clearCart: () => Promise<boolean>;
   refreshCart: () => Promise<void>;
 }
@@ -52,8 +52,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addToCart = async (
     productId: string, 
     quantity: number, 
-    size: string, 
-    color: string
+    size: string
   ): Promise<boolean> => {
     if (!user) return false;
 
@@ -63,7 +62,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ productId, quantity, size, color }),
+        body: JSON.stringify({ productId, quantity, size }),
         credentials: 'include'
       });
 
@@ -83,8 +82,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeFromCart = async (
     productId: string, 
-    size: string, 
-    color: string
+    size: string
   ): Promise<boolean> => {
     if (!user) return false;
 
@@ -94,7 +92,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ productId, size, color }),
+        body: JSON.stringify({ productId, size }),
         credentials: 'include'
       });
 
@@ -115,7 +113,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = async (
     productId: string, 
     size: string, 
-    color: string, 
     quantity: number
   ): Promise<boolean> => {
     if (!user) return false;
@@ -126,7 +123,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ productId, size, color, quantity }),
+        body: JSON.stringify({ productId, size, quantity }),
         credentials: 'include'
       });
 

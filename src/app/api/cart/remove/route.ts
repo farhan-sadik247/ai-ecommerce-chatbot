@@ -14,7 +14,7 @@ interface PopulatedCartItem {
   };
   quantity: number;
   size: string;
-  color: string;
+  
   price: number;
 }
 
@@ -31,13 +31,13 @@ export async function DELETE(request: NextRequest) {
       }, { status: 401 });
     }
 
-    const { productId, size, color } = await request.json();
+    const { productId, size } = await request.json();
 
     // Validate required fields
-    if (!productId || !size || !color) {
+    if (!productId || !size ) {
       return NextResponse.json<ApiResponse>({
         success: false,
-        error: 'Product ID, size, and color are required'
+        error: 'Product ID, size, are required'
       }, { status: 400 });
     }
 
@@ -50,7 +50,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Remove item from cart
-    await cart.removeItem(productId, size, color);
+    await cart.removeItem(productId, size);
     await cart.save();
 
     // Populate cart items for response
@@ -64,7 +64,7 @@ export async function DELETE(request: NextRequest) {
         product: item.productId, // Map populated productId to product
         quantity: item.quantity,
         size: item.size,
-        color: item.color,
+        
         price: item.price
       }))
     };

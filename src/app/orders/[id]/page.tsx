@@ -98,27 +98,7 @@ function OrderDetailsContent() {
     fetchOrderDetails();
   }, [orderId, user, router, fetchOrderDetails]);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending': return '#f59e0b';
-      case 'confirmed': return '#10b981';
-      case 'processing': return '#3b82f6';
-      case 'shipped': return '#8b5cf6';
-      case 'delivered': return '#059669';
-      case 'cancelled': return '#ef4444';
-      default: return '#6b7280';
-    }
-  };
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed': return '#10b981';
-      case 'pending': return '#f59e0b';
-      case 'failed': return '#ef4444';
-      case 'refunded': return '#6b7280';
-      default: return '#6b7280';
-    }
-  };
 
   const handleCancelOrder = async () => {
     if (!order || !window.confirm('Are you sure you want to cancel this entire order?')) {
@@ -298,7 +278,7 @@ function OrderDetailsContent() {
                       <p className="item-brand">{item.productId?.brand}</p>
                       <div className="item-specs">
                         <span className="spec-item">Size: {item.size}</span>
-                        <span className="spec-item">Color: {item.color}</span>
+                        
                       </div>
                     </div>
 

@@ -1,359 +1,314 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import AuthModal from '@/components/auth/AuthModal';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Product } from '@/types';
 import './home.scss';
 
+const CATEGORIES = [
+  { id: 'boots',        label: 'Boots',        emoji: '🥾', color: '#c0392b', bg: '#fff5f5' },
+  { id: 'sneakers',     label: 'Sneakers',      emoji: '👟', color: '#2980b9', bg: '#f0f8ff' },
+  { id: 'loafers',      label: 'Loafers',       emoji: '🩴', color: '#8e44ad', bg: '#f9f0ff' },
+  { id: 'sandals',      label: 'Sandals',       emoji: '🌴', color: '#16a085', bg: '#f0fff8' },
+  { id: 'flip_flops',   label: 'Flip Flops',    emoji: '🏖️', color: '#d35400', bg: '#fff8f0' },
+  { id: 'soccer_shoes', label: 'Soccer Shoes',  emoji: '⚽', color: '#27ae60', bg: '#f0fff4' },
+];
+
+interface CategoryProducts { [key: string]: Product[] }
+
+/* ─── Smooth Category Carousel ─────────────────────────── */
+function CategoryCarousel({ category, products }: { category: typeof CATEGORIES[0]; products: Product[] }) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(true);
+
+  const sync = useCallback(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 4);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', sync, { passive: true });
+    sync();
+    return () => el.removeEventListener('scroll', sync);
+  }, [sync, products]);
+
+  const scroll = (dir: 'l' | 'r') =>
+    trackRef.current?.scrollBy({ left: dir === 'l' ? -340 : 340, behavior: 'smooth' });
+
+  if (!products?.length) return null;
+
+  return (
+    <section className="cat-section">
+      <div className="container">
+        {/* Header */}
+        <div className="cat-header">
+          <div className="cat-title-group">
+            <div className="cat-icon" style={{ background: category.bg, color: category.color }}>
+              {category.emoji}
+            </div>
+            <div>
+              <h2 className="cat-title" style={{ '--accent': category.color } as React.CSSProperties}>
+                {category.label}
+              </h2>
+              <p className="cat-count">{products.length} styles available</p>
+            </div>
+          </div>
+          <div className="cat-nav">
+            <button className={`nav-arrow ${canLeft ? '' : 'off'}`} onClick={() => scroll('l')} disabled={!canLeft}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+            </button>
+            <button className={`nav-arrow ${canRight ? '' : 'off'}`} onClick={() => scroll('r')} disabled={!canRight}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            </button>
+            <Link href={`/products?category=${category.id}`} className="cat-view-all" style={{ color: category.color }}>
+              View all →
+            </Link>
+          </div>
+        </div>
+
+        {/* Track */}
+        <div className="cat-track-wrap">
+          <div className="cat-track" ref={trackRef}>
+            {products.map((product) => (
+              <Link key={product._id} href={`/products/${product._id}`} className="shoe-card">
+                <div className="shoe-card-img" style={{ background: category.bg }}>
+                  <Image
+                    src={product.image || '/placeholder-shoe.jpg'}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 600px) 200px, 280px"
+                    className="shoe-img"
+                  />
+                  <div className="shoe-card-hover" style={{ background: `${category.color}cc` }}>
+                    <span className="quick-view">Quick View ↗</span>
+                  </div>
+                </div>
+                <div className="shoe-card-info">
+                  <span className="shoe-brand">{product.brand}</span>
+                  <h3 className="shoe-name">{product.name}</h3>
+                  <div className="shoe-row">
+                    <span className="shoe-price" style={{ color: category.color }}>${product.price.toFixed(2)}</span>
+                    <span className="shoe-meta">{product.sizes.length} sizes</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Home Page ─────────────────────────────────────────── */
 export default function Home() {
   const { user, loading } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const [recentProducts, setRecentProducts] = useState<Product[]>([]);
-  const [heroProducts, setHeroProducts] = useState<Product[]>([]);
+  const [categoryProducts, setCategoryProducts] = useState<CategoryProducts>({});
+  const [fetching, setFetching] = useState(true);
 
-  const handleAuthClick = (mode: 'login' | 'register') => {
-    setAuthMode(mode);
-    setAuthModalOpen(true);
-  };
+  const openAuth = (mode: 'login' | 'register') => { setAuthMode(mode); setAuthModalOpen(true); };
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    (async () => {
       try {
-        const response = await fetch('/api/products?limit=12');
-        const data = await response.json();
-
-        console.log('API Response:', data); // Debug log
-
-        if (data.success && data.data && data.data.products) {
-          const products = data.data.products;
-
-          // Ensure products is an array
-          if (!Array.isArray(products)) {
-            console.error('Products is not an array:', products);
-            return;
-          }
-
-          if (products.length > 0) {
-            // Get random products for different sections
-            const shuffled = [...products].sort(() => 0.5 - Math.random());
-            setHeroProducts(shuffled.slice(0, 3));
-            setFeaturedProducts(shuffled.slice(3, 9));
-            setRecentProducts(shuffled.slice(9, 15));
-          }
-        } else {
-          console.error('API Error:', data.error || 'No products found');
-        }
-      } catch (error) {
-        console.error('Failed to fetch products:', error);
-      }
-    };
-
-    fetchProducts();
+        const byCategory: CategoryProducts = {};
+        await Promise.all(CATEGORIES.map(async (cat) => {
+          const res = await fetch(`/api/products?category=${cat.id}&limit=12`);
+          const data = await res.json();
+          if (data.success && data.data?.products) byCategory[cat.id] = data.data.products;
+        }));
+        setCategoryProducts(byCategory);
+      } catch (e) { console.error(e); }
+      finally { setFetching(false); }
+    })();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading ShoeBay...</p>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="splash">
+      <div className="splash-spinner" />
+      <p>Loading ShoeBay…</p>
+    </div>
+  );
+
 
   return (
     <div className="home-page">
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-background">
-          <div className="hero-shapes">
-            <div className="shape shape-1"></div>
-            <div className="shape shape-2"></div>
-            <div className="shape shape-3"></div>
+
+      {/* ═══════════ HERO ═══════════ */}
+      <section className="hero">
+        {/* Ambient blobs */}
+        <div className="hero-blob blob-1" />
+        <div className="hero-blob blob-2" />
+        <div className="hero-blob blob-3" />
+
+        <div className="container hero-inner">
+          {/* ── Left ── */}
+          <div className="hero-left">
+            <div className="hero-badge">
+              <span className="badge-dot" />
+              AI-Powered Shopping
+            </div>
+
+            <h1 className="hero-headline">
+              Find Your<br />
+              <span className="hero-gradient-word">Perfect</span>{' '}
+              <span className="hero-outline-word">Pair</span>
+            </h1>
+
+            <p className="hero-sub">
+              Discover 215+ premium shoes across 6 categories. Let our AI assistant guide you to your ideal match.
+            </p>
+
+            {user ? (
+              <div className="hero-cta">
+                <Link href="/products" className="cta-primary">
+                  Shop Now
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                </Link>
+                <Link href="/cart" className="cta-ghost">View Cart</Link>
+                <p className="hero-welcome">Welcome back, <strong>{user.name}</strong> 👋</p>
+              </div>
+            ) : (
+              <div className="hero-cta">
+                <button onClick={() => openAuth('register')} className="cta-primary">
+                  Get Started Free
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                </button>
+                <button onClick={() => openAuth('login')} className="cta-ghost">Sign In</button>
+              </div>
+            )}
+
+            {/* Stats */}
+            <div className="hero-stats">
+              <div className="stat">
+                <span className="stat-num">215+</span>
+                <span className="stat-label">Styles</span>
+              </div>
+              <div className="stat-divider" />
+              <div className="stat">
+                <span className="stat-num">6</span>
+                <span className="stat-label">Categories</span>
+              </div>
+              <div className="stat-divider" />
+              <div className="stat">
+                <span className="stat-num">Free</span>
+                <span className="stat-label">Shipping</span>
+              </div>
+              <div className="stat-divider" />
+              <div className="stat">
+                <span className="stat-num">AI</span>
+                <span className="stat-label">Assistant</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Right ── */}
+          <div className="hero-right">
+            <div className="hero-showcase">
+
+              {/* ── Decorative animated rings ── */}
+              <div className="shoe-stage">
+
+                {/* Orbiting rings */}
+                <div className="orbit orbit-1" />
+                <div className="orbit orbit-2" />
+                <div className="orbit orbit-3" />
+
+                {/* Pulsing halo rings */}
+                <div className="halo halo-1" />
+                <div className="halo halo-2" />
+                <div className="halo halo-3" />
+
+                {/* Floating sparkle dots */}
+                <div className="spark spark-1" />
+                <div className="spark spark-2" />
+                <div className="spark spark-3" />
+                <div className="spark spark-4" />
+                <div className="spark spark-5" />
+
+                {/* Ground glow */}
+                <div className="shoe-glow-ground" />
+
+                {/* The shoe — floats up/down */}
+                <div className="shoe-float">
+                  <Image
+                    src="/assets/sneaker.png"
+                    alt="ShoeBay Hero Sneaker"
+                    width={480}
+                    height={380}
+                    className="hero-shoe-photo"
+                    style={{ width: '100%', height: 'auto' }}
+                    priority
+                  />
+                </div>
+              </div>
+
+              {/* Floating chip — top left */}
+              <div className="hero-chip chip-top">
+                <span className="chip-price">215+</span>
+                <span className="chip-name">Premium Styles</span>
+              </div>
+
+              {/* Floating chip — bottom right */}
+              <div className="hero-chip chip-bottom">
+                <span className="chip-badge">✦ AI Powered</span>
+                <span className="chip-brand">ShoeBay</span>
+              </div>
+
+            </div>
           </div>
         </div>
 
+        {/* Wave divider */}
+        <div className="hero-wave">
+          <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+            <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="#f8f9ff" />
+          </svg>
+        </div>
+      </section>
+
+      {/* ═══════════ CATEGORY PILLS ═══════════ */}
+      <section className="pills-section">
         <div className="container">
-          <div className="hero-content">
-            <div className="hero-text">
-              <h1 className="hero-title">
-                Welcome to <span className="brand-name">ShoeBay</span>
-              </h1>
-              <p className="hero-subtitle">
-                Your intelligent AI shopping assistant for the perfect pair of shoes.
-                Chat with our advanced AI to discover, compare, and purchase shoes effortlessly.
-              </p>
-
-              {user ? (
-                <div className="user-welcome">
-                  <p className="welcome-text">
-                    Welcome back, <span className="user-name">{user.name}</span>! 👋
-                  </p>
-                  <div className="hero-buttons">
-                    <Link href="/products" className="btn btn-primary">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                      </svg>
-                      Browse Products
-                    </Link>
-                    <Link href="/cart" className="btn btn-secondary">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                      </svg>
-                      View Cart
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                <div className="auth-section">
-                  <p className="auth-text">
-                    Join thousands of happy customers and start your shoe shopping journey
-                  </p>
-                  <div className="hero-buttons">
-                    <button
-                      onClick={() => handleAuthClick('register')}
-                      className="btn btn-primary"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                      </svg>
-                      Get Started Free
-                    </button>
-                    <button
-                      onClick={() => handleAuthClick('login')}
-                      className="btn btn-secondary"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                      </svg>
-                      Sign In
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="hero-image">
-              {heroProducts.map((product, index) => (
-                <div key={product._id} className={`floating-card card-${index + 1}`}>
-                  <div className="card-content">
-                    <div className="shoe-image">
-                      <img
-                        src={product.image || '/placeholder-shoe.jpg'}
-                        alt={product.name}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/placeholder-shoe.jpg';
-                        }}
-                      />
-                    </div>
-                    <div className="card-text">
-                      <h4>{product.name}</h4>
-                      <p>${product.price.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Fallback cards if products haven't loaded */}
-              {heroProducts.length === 0 && (
-                <>
-                  <div className="floating-card card-1">
-                    <div className="card-content">
-                      <div className="shoe-icon">👟</div>
-                      <div className="card-text">
-                        <h4>Nike Air Max</h4>
-                        <p>$129.99</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="floating-card card-2">
-                    <div className="card-content">
-                      <div className="shoe-icon">🥾</div>
-                      <div className="card-text">
-                        <h4>Timberland Boots</h4>
-                        <p>$189.99</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="floating-card card-3">
-                    <div className="card-content">
-                      <div className="shoe-icon">👠</div>
-                      <div className="card-text">
-                        <h4>Elegant Heels</h4>
-                        <p>$89.99</p>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+          <div className="pills-row">
+            {CATEGORIES.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/products?category=${cat.id}`}
+                className="pill"
+                style={{ '--pill-color': cat.color, '--pill-bg': cat.bg } as React.CSSProperties}
+              >
+                <span className="pill-emoji">{cat.emoji}</span>
+                <span>{cat.label}</span>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Products Section */}
-      <section className="products-section featured-products">
-        <div className="container">
-          <div className="section-header">
-            <div className="section-title">
-              <h2>Featured Products</h2>
-              <p>Discover our handpicked selection of premium shoes</p>
-            </div>
-            <div className="carousel-controls">
-              <button
-                className="carousel-btn prev-btn"
-                onClick={() => {
-                  const carousel = document.querySelector('.featured-carousel');
-                  if (carousel) {
-                    carousel.scrollBy({ left: -300, behavior: 'smooth' });
-                  }
-                }}
-              >
-                ←
-              </button>
-              <button
-                className="carousel-btn next-btn"
-                onClick={() => {
-                  const carousel = document.querySelector('.featured-carousel');
-                  if (carousel) {
-                    carousel.scrollBy({ left: 300, behavior: 'smooth' });
-                  }
-                }}
-              >
-                →
-              </button>
-            </div>
-          </div>
-
-          <div className="carousel-container">
-            <div className="carousel featured-carousel">
-              {featuredProducts.map((product) => (
-                <div key={product._id} className="carousel-item">
-                  <Link href={`/products/${product._id}`} className="gallery-link">
-                    <div className="gallery-image">
-                      <img
-                        src={product.image || '/placeholder-shoe.jpg'}
-                        alt={product.name}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/placeholder-shoe.jpg';
-                        }}
-                      />
-                      <div className="gallery-overlay">
-                        <div className="gallery-info">
-                          <h3>{product.name}</h3>
-                          <p className="gallery-brand">{product.brand}</p>
-                          <p className="gallery-price">${product.price.toFixed(2)}</p>
-                        </div>
-                        <div className="gallery-action">
-                          <span>View Details</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="product-info">
-                      <h3>{product.name}</h3>
-                      <p className="product-brand">{product.brand}</p>
-                      <p className="product-price">${product.price.toFixed(2)}</p>
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="section-footer">
-            <Link href="/products" className="btn btn-primary">
-              View All Products
-            </Link>
-          </div>
+      {/* ═══════════ CATEGORY CAROUSELS ═══════════ */}
+      {fetching ? (
+        <div className="fetch-loading">
+          <div className="splash-spinner small" />
+          <p>Loading collections…</p>
         </div>
-      </section>
+      ) : (
+        CATEGORIES.map(cat => (
+          <CategoryCarousel key={cat.id} category={cat} products={categoryProducts[cat.id] || []} />
+        ))
+      )}
 
-      {/* Recent Products Section */}
-      <section className="products-section recent-products">
-        <div className="container">
-          <div className="section-header">
-            <div className="section-title">
-              <h2>Recently Added</h2>
-              <p>Check out our latest arrivals and trending styles</p>
-            </div>
-            <div className="carousel-controls">
-              <button
-                className="carousel-btn prev-btn"
-                onClick={() => {
-                  const carousel = document.querySelector('.recent-carousel');
-                  if (carousel) {
-                    carousel.scrollBy({ left: -300, behavior: 'smooth' });
-                  }
-                }}
-              >
-                ←
-              </button>
-              <button
-                className="carousel-btn next-btn"
-                onClick={() => {
-                  const carousel = document.querySelector('.recent-carousel');
-                  if (carousel) {
-                    carousel.scrollBy({ left: 300, behavior: 'smooth' });
-                  }
-                }}
-              >
-                →
-              </button>
-            </div>
-          </div>
-
-          <div className="carousel-container">
-            <div className="carousel recent-carousel">
-              {recentProducts.map((product) => (
-                <div key={product._id} className="carousel-item">
-                  <Link href={`/products/${product._id}`} className="gallery-link">
-                    <div className="gallery-image">
-                      <img
-                        src={product.image || '/placeholder-shoe.jpg'}
-                        alt={product.name}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/placeholder-shoe.jpg';
-                        }}
-                      />
-                      <div className="gallery-overlay">
-                        <div className="gallery-info">
-                          <h3>{product.name}</h3>
-                          <p className="gallery-brand">{product.brand}</p>
-                          <p className="gallery-price">${product.price.toFixed(2)}</p>
-                        </div>
-                        <div className="gallery-action">
-                          <span>View Details</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="product-info">
-                      <h3>{product.name}</h3>
-                      <p className="product-brand">{product.brand}</p>
-                      <p className="product-price">${product.price.toFixed(2)}</p>
-                    </div>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="section-footer">
-            <Link href="/products" className="btn btn-primary">
-              Browse More
-            </Link>
-          </div>
-        </div>
-      </section>
-
-
-
-      {/* Footer */}
+      {/* ═══════════ FOOTER ═══════════ */}
       <footer className="footer">
         <div className="container">
           <div className="footer-content">
@@ -361,18 +316,16 @@ export default function Home() {
               <h3>ShoeBay</h3>
               <p>Your intelligent AI shopping assistant for the perfect pair of shoes.</p>
             </div>
-
             <div className="footer-links">
               <div className="footer-column">
                 <h4>Shop</h4>
                 <ul>
                   <li><Link href="/products">All Products</Link></li>
-                  <li><Link href="/products?category=sneakers">Sneakers</Link></li>
-                  <li><Link href="/products?category=boots">Boots</Link></li>
-                  <li><Link href="/products?category=formal">Formal</Link></li>
+                  {CATEGORIES.map(cat => (
+                    <li key={cat.id}><Link href={`/products?category=${cat.id}`}>{cat.label}</Link></li>
+                  ))}
                 </ul>
               </div>
-
               <div className="footer-column">
                 <h4>Account</h4>
                 <ul>
@@ -381,7 +334,6 @@ export default function Home() {
                   <li><Link href="/cart">Shopping Cart</Link></li>
                 </ul>
               </div>
-
               <div className="footer-column">
                 <h4>Support</h4>
                 <ul>
@@ -393,24 +345,14 @@ export default function Home() {
               </div>
             </div>
           </div>
-
           <div className="footer-bottom">
-            <div className="footer-copyright">
-              <p>&copy; 2025 ShoeBay. All rights reserved.</p>
-            </div>
-            <div className="footer-credit">
-              <p>Developed by <span className="developer-name">MD. FARHAN SADIK</span></p>
-            </div>
+            <p>&copy; {new Date().getFullYear()} ShoeBay. All rights reserved.</p>
+            <p>Developed by <span className="developer-name">MD. FARHAN SADIK</span></p>
           </div>
         </div>
       </footer>
 
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        onSuccess={() => setAuthModalOpen(false)}
-        initialMode={authMode}
-      />
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} onSuccess={() => setAuthModalOpen(false)} initialMode={authMode} />
     </div>
   );
 }

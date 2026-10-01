@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import groq from '@/lib/groq';
+import genAI from '@/lib/gemini';
 import { Product, Cart, ChatHistory } from '@/models';
 import { authenticateUser, generateSessionId } from '@/utils/auth';
 import { ApiResponse, ChatIntent, ChatIntentResult } from '@/types';
@@ -17,7 +17,7 @@ interface ChatResponse {
     productName?: string;
     category?: string;
     size?: string;
-    color?: string;
+    
     quantity?: number;
   };
   products?: any[];
@@ -30,7 +30,7 @@ interface ProductInfo {
   name: string;
   brand: string;
   price: number;
-  colors: string[];
+
   sizes: string[];
   category: string;
   image?: string;
@@ -40,8 +40,8 @@ interface ChatEntities {
   productName?: string;
   category?: string;
   size?: string;
-  color?: string;
   quantity?: number;
+  maxPrice?: number;
 }
 
 interface InternalChatResponse {
@@ -108,7 +108,6 @@ export async function POST(request: NextRequest) {
       productName: chatResponse.entities.productName || undefined,
       category: chatResponse.entities.category || undefined,
       size: chatResponse.entities.size || undefined,
-      color: chatResponse.entities.color || undefined,
       quantity: chatResponse.entities.quantity || undefined
     };
 
@@ -150,16 +149,21 @@ Available intents:
 3. "remove_from_cart" - User wants to remove items from cart (e.g., "remove the boots", "delete size 8 sneakers")
 4. "view_cart" - User wants to see their cart contents (e.g., "show my cart", "what's in my cart")
 5. "checkout" - User wants to complete purchase (e.g., "checkout", "I'm ready to buy", "place order")
-6. "general_inquiry" - General questions about products, shipping, etc.
-7. "greeting" - User is greeting or starting conversation
-8. "unknown" - Cannot determine intent
+6. "track_order" - User is asking about their order status or tracking (e.g., "where is my order?", "track my package")
+7. "shipping_policy" - Questions about shipping times, costs, or delivery (e.g., "how long is shipping?", "free shipping?")
+8. "return_policy" - Questions about returns, refunds, or exchanges (e.g., "how do I return?", "refund policy")
+9. "promotions" - User asking for discounts, sales, coupons, or promo codes (e.g., "any discount codes?", "is there a sale?")
+10. "product_recommendation" - User asking for advice on what to buy or style advice (e.g., "what shoes go with a blue suit?", "best running shoes for flat feet?")
+11. "general_inquiry" - Other general questions about the store
+12. "greeting" - User is greeting or starting conversation
+13. "unknown" - Cannot determine intent
 
 Extract entities when relevant:
 - productName: specific shoe name, brand, or model mentioned (e.g., "Arizona", "Nike Air Max", "Converse", "Birkenstock")
 - category: type of shoe (sneakers, boots, sandals, formal, sports, casual)
 - size: shoe size mentioned (e.g., "9", "10.5", "size 8")
-- color: color mentioned (e.g., "black", "red", "white")
 - quantity: number of items (default to 1 if not specified)
+- maxPrice: maximum price or budget mentioned (e.g., if user says "under 100", maxPrice is 100)
 
 Important: For productName, extract ANY shoe-related name, brand, or model mentioned, even partial names like "Arizona" (which refers to Birkenstock Arizona sandals).
 
@@ -175,31 +179,29 @@ Respond with a JSON object containing:
     "productName": "extracted product name or null",
     "category": "extracted category or null",
     "size": "extracted size or null",
-    "color": "extracted color or null",
-    "quantity": extracted_number_or_null
+    "quantity": extracted_number_or_null,
+    "maxPrice": extracted_number_or_null
   },
   "confidence": confidence_score_0_to_1
 }`;
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert at analyzing user intents for an e-commerce shoe store. Always respond with valid JSON only."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 300
+    const model = genAI.getGenerativeModel({
+      model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+      systemInstruction: "You are an expert at analyzing user intents for an e-commerce shoe store. Always respond with valid JSON only."
     });
 
-    const response = completion.choices[0]?.message?.content;
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 300,
+        responseMimeType: "application/json",
+      }
+    });
+
+    const response = result.response.text();
     if (!response) {
-      throw new Error('No response from OpenAI');
+      throw new Error('No response from Gemini API');
     }
 
     // Parse the JSON response
@@ -239,13 +241,13 @@ async function handleIntent(
 
   switch (intent) {
     case 'browse_products':
-      return await handleBrowseProducts(entities, originalMessage);
+      return await handleBrowseProducts(entities);
 
     case 'add_to_cart':
-      return await handleAddToCart(entities, userId, originalMessage);
+      return await handleAddToCart(entities, userId);
 
     case 'remove_from_cart':
-      return await handleRemoveFromCart(entities, userId, originalMessage);
+      return await handleRemoveFromCart(entities, userId);
 
     case 'view_cart':
       return await handleViewCart(userId);
@@ -260,12 +262,43 @@ async function handleIntent(
         entities
       };
 
+    case 'track_order':
+      return {
+        response: "To track your order, please log into your account and visit the **My Orders** page. You'll find tracking numbers and real-time updates for all your recent purchases there.",
+        intent,
+        entities
+      };
+
+    case 'shipping_policy':
+      return {
+        response: "We offer **Free Standard Shipping** on all orders over $50! Standard shipping typically takes 3-5 business days. Express 2-day shipping is available at checkout for $15.",
+        intent,
+        entities
+      };
+
+    case 'return_policy':
+      return {
+        response: "We have a hassle-free 30-day return policy. If your shoes don't fit perfectly, you can return them unworn within 30 days of delivery for a full refund or exchange. Return shipping is always free!",
+        intent,
+        entities
+      };
+
+    case 'promotions':
+      return {
+        response: "Yes! You can use code **WELCOME10** for 10% off your first order. We also offer free shipping on all orders over $50.",
+        intent,
+        entities
+      };
+
+    case 'product_recommendation':
+      return await handleGeneralInquiry(originalMessage); // Fallback to LLM for dynamic recommendations
+
     case 'general_inquiry':
       return await handleGeneralInquiry(originalMessage);
 
     default:
       return {
-        response: "I'm not sure I understand. I can help you browse shoes, add items to your cart, remove items, view your cart, or checkout. What would you like to do?",
+        response: "I'm not sure I understand. I can help you browse shoes, track your order, check shipping policies, view your cart, or recommend a style. What would you like to do?",
         intent: 'unknown',
         entities
       };
@@ -273,7 +306,7 @@ async function handleIntent(
 }
 
 // Handle product browsing
-async function handleBrowseProducts(entities: ChatEntities, _originalMessage: string): Promise<InternalChatResponse> {
+async function handleBrowseProducts(entities: ChatEntities): Promise<InternalChatResponse> {
   try {
     // Build search query based on entities
     const filter: any = {};
@@ -299,8 +332,8 @@ async function handleBrowseProducts(entities: ChatEntities, _originalMessage: st
       ];
     }
 
-    if (entities.color) {
-      filter.colors = { $in: [new RegExp(entities.color, 'i')] };
+    if (entities.maxPrice) {
+      filter.price = { $lte: entities.maxPrice };
     }
 
     // Get products (limit to 3 for chat display)
@@ -317,11 +350,11 @@ async function handleBrowseProducts(entities: ChatEntities, _originalMessage: st
       };
     }
 
-    const productList = products.map(p =>
-      `• **${p.name}** by ${p.brand} - $${p.price}\n  Available in: ${p.colors.join(', ')}\n  Sizes: ${p.sizes.join(', ')}`
-    ).join('\n\n');
-
-    const response = `Here are ${products.length} shoes I found for you:\n\n${productList}\n\nWould you like to add any of these to your cart? Just let me know the name, size, and color!`;
+    let response = `Here are ${products.length} shoes I found for you.`;
+    if (entities.maxPrice) {
+      response = `Here are ${products.length} shoes I found for you under $${entities.maxPrice}.`;
+    }
+    response += `\n\nWould you like to add any of these to your cart? Just let me know the name and size!`;
 
     return {
       response,
@@ -342,7 +375,7 @@ async function handleBrowseProducts(entities: ChatEntities, _originalMessage: st
 }
 
 // Handle adding items to cart
-async function handleAddToCart(entities: ChatEntities, userId: string, _originalMessage: string): Promise<InternalChatResponse> {
+async function handleAddToCart(entities: ChatEntities, userId: string): Promise<InternalChatResponse> {
   try {
     // Find the product with improved search
     let product = null;
@@ -386,21 +419,12 @@ async function handleAddToCart(entities: ChatEntities, userId: string, _original
       };
     }
 
-    // Validate size and color
+    // Validate size
     const size = entities.size;
-    const color = entities.color;
 
     if (!size || !product.sizes.includes(size)) {
       return {
         response: `Please specify a valid size for ${product.name}. Available sizes: ${product.sizes.join(', ')}`,
-        intent: 'add_to_cart',
-        entities
-      };
-    }
-
-    if (!color || !product.colors.some((c: string) => c.toLowerCase().includes(color.toLowerCase()))) {
-      return {
-        response: `Please specify a valid color for ${product.name}. Available colors: ${product.colors.join(', ')}`,
         intent: 'add_to_cart',
         entities
       };
@@ -419,8 +443,7 @@ async function handleAddToCart(entities: ChatEntities, userId: string, _original
     // Check if item already exists in cart
     const existingItemIndex = cart.items.findIndex((item: any) =>
       item.productId.toString() === product._id.toString() &&
-      item.size === size &&
-      item.color.toLowerCase() === color.toLowerCase()
+      item.size === size
     );
 
     const quantity = entities.quantity || 1;
@@ -434,7 +457,6 @@ async function handleAddToCart(entities: ChatEntities, userId: string, _original
         productId: product._id,
         quantity,
         size,
-        color: color.toLowerCase(),
         price: product.price
       });
     }
@@ -444,7 +466,7 @@ async function handleAddToCart(entities: ChatEntities, userId: string, _original
     await cart.save();
 
     return {
-      response: `Great! I've added ${quantity} ${product.name} in ${color} (size ${size}) to your cart for $${(product.price * quantity).toFixed(2)}. Your cart total is now $${cart.totalAmount.toFixed(2)}. Would you like to continue shopping or checkout?`,
+      response: `Great! I've added ${quantity} ${product.name} (size ${size}) to your cart for $${(product.price * quantity).toFixed(2)}. Your cart total is now $${cart.totalAmount.toFixed(2)}. Would you like to continue shopping or checkout?`,
       intent: 'add_to_cart',
       entities,
       cartUpdated: true
@@ -461,7 +483,7 @@ async function handleAddToCart(entities: ChatEntities, userId: string, _original
 }
 
 // Handle removing items from cart
-async function handleRemoveFromCart(entities: ChatEntities, userId: string, _originalMessage: string): Promise<InternalChatResponse> {
+async function handleRemoveFromCart(entities: ChatEntities, userId: string): Promise<InternalChatResponse> {
   try {
     const cart = await Cart.findOne({ userId }).populate('items.productId');
 
@@ -485,23 +507,23 @@ async function handleRemoveFromCart(entities: ChatEntities, userId: string, _ori
       });
     }
 
-    // If size and color specified, be more specific
-    if (entities.size || entities.color) {
+    // If size specified, be more specific
+    if (entities.size ) {
       itemIndex = cart.items.findIndex((item: any) => {
         const product = item.productId;
         const nameMatch = entities.productName ?
           (product.name.toLowerCase().includes(entities.productName.toLowerCase()) ||
            product.brand.toLowerCase().includes(entities.productName.toLowerCase())) : true;
         const sizeMatch = entities.size ? item.size === entities.size : true;
-        const colorMatch = entities.color ? item.color.toLowerCase().includes(entities.color.toLowerCase()) : true;
+        
 
-        return nameMatch && sizeMatch && colorMatch;
+        return nameMatch && sizeMatch ;
       });
     }
 
     if (itemIndex === -1) {
       const cartItems = cart.items.map((item: any) =>
-        `• ${item.productId.name} (${item.color}, size ${item.size}) - Qty: ${item.quantity}`
+        `• ${item.productId.name} (size ${item.size}) - Qty: ${item.quantity}`
       ).join('\n');
 
       return {
@@ -521,7 +543,7 @@ async function handleRemoveFromCart(entities: ChatEntities, userId: string, _ori
     await cart.save();
 
     return {
-      response: `I've removed ${removedProduct.name} in ${itemToRemove.color} (size ${itemToRemove.size}) from your cart. Your new cart total is $${cart.totalAmount.toFixed(2)}.`,
+      response: `I've removed ${removedProduct.name} (size ${itemToRemove.size}) from your cart. Your new cart total is $${cart.totalAmount.toFixed(2)}.`,
       intent: 'remove_from_cart',
       entities,
       cartUpdated: true
@@ -551,7 +573,7 @@ async function handleViewCart(userId: string): Promise<InternalChatResponse> {
     }
 
     const cartItems = cart.items.map((item: any) =>
-      `• **${item.productId.name}** by ${item.productId.brand}\n  Color: ${item.color}, Size: ${item.size}, Qty: ${item.quantity}\n  Price: $${(item.price * item.quantity).toFixed(2)}`
+      `• **${item.productId.name}** by ${item.productId.brand}\n  Size: ${item.size}, Qty: ${item.quantity}\n  Price: $${(item.price * item.quantity).toFixed(2)}`
     ).join('\n\n');
 
     const response = `Here's what's in your cart:\n\n${cartItems}\n\n**Total: $${cart.totalAmount.toFixed(2)}**\n\nWould you like to checkout or continue shopping?`;
@@ -605,7 +627,7 @@ async function handleCheckout(userId: string): Promise<InternalChatResponse> {
       productBrand: item.productId.brand,
       quantity: item.quantity,
       size: item.size,
-      color: item.color,
+
       price: item.price,
       subtotal: item.price * item.quantity
     }));
@@ -684,29 +706,33 @@ Your cart has been cleared and your order is being processed. You'll pay when th
 async function handleGeneralInquiry(originalMessage: string): Promise<InternalChatResponse> {
   try {
     const prompt = `
-You are a helpful customer service assistant for a shoe e-commerce store. Answer the user's question about shoes, shipping, returns, sizing, or general store policies. Keep responses friendly, helpful, and concise.
+You are a helpful customer service assistant and personal stylist for ShoeBay, an online premium shoe store. Answer the user's question about shoes, styling, shipping, returns, sizing, or general store policies. Keep responses friendly, helpful, concise, and beautifully formatted using markdown.
 
-User question: "${originalMessage}"
+Store Context:
+- Free shipping on orders over $50. Standard shipping takes 3-5 days. Express takes 2 days for $15.
+- 30-day hassle-free returns. Unworn shoes can be returned for a full refund or exchange. Return shipping is free.
+- Promotions: Use code WELCOME10 for 10% off the first order.
+- Products: We sell Sneakers, Boots, Loafers, Sandals, Flip-flops, and Soccer shoes.
+- Contact: Support is available at support@shoebay.com or 1-800-SHOE-BAY.
 
-Provide a helpful response about shoes, shopping, or store policies.`;
+User message: "${originalMessage}"
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
-      messages: [
-        {
-          role: "system",
-          content: "You are a helpful customer service assistant for ShoeBot, an online shoe store. Be friendly, helpful, and informative."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 200
+Provide a helpful, friendly response. If they ask for styling advice, be a fashion expert. If they ask about policies, be clear and direct.`;
+
+    const model = genAI.getGenerativeModel({
+      model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+      systemInstruction: "You are a helpful customer service assistant for ShoeBot, an online shoe store. Be friendly, helpful, and informative."
     });
 
-    const response = completion.choices[0]?.message?.content ||
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 200,
+      }
+    });
+
+    const response = result.response.text() ||
       "I'm here to help with any questions about our shoes or shopping experience. What would you like to know?";
 
     return {

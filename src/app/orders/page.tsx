@@ -76,17 +76,7 @@ export default function OrdersPage() {
     fetchOrders();
   }, [user, fetchOrders]);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending': return '#f59e0b';
-      case 'confirmed': return '#10b981';
-      case 'processing': return '#3b82f6';
-      case 'shipped': return '#8b5cf6';
-      case 'delivered': return '#059669';
-      case 'cancelled': return '#ef4444';
-      default: return '#6b7280';
-    }
-  };
+
 
   const handleCancelOrder = async (orderId: string, orderNumber: string) => {
     if (!window.confirm(`Are you sure you want to cancel order #${orderNumber}?`)) {

@@ -66,7 +66,7 @@ export default function PaymentDetailsModal({
                     <td>
                       <div className="product-details">
                         <div className="product-name">{item.product?.name || 'Product'}</div>
-                        <div className="product-specs">Size: {item.size}, Color: {item.color}</div>
+                        <div className="product-specs">Size: {item.size}</div>
                       </div>
                     </td>
                     <td>৳{item.price.toFixed(2)}</td>

@@ -73,7 +73,7 @@ export default function Cart({ onCheckout }: CartProps) {
       <div className="cart-items">
         {cart.items.map((item, index) => (
           <CartItem
-            key={`${item.productId || 'unknown'}-${item.size || 'no-size'}-${item.color || 'no-color'}-${index}`}
+            key={`${item.productId || 'unknown'}-${item.size || 'no-size'}-${index}`}
             item={item}
           />
         ))}

@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { Product } from '@/types';
 import Link from 'next/link';
+import Image from 'next/image';
 import './product-details.scss';
 
 export default function ProductDetailsPage() {
@@ -17,7 +18,6 @@ export default function ProductDetailsPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
 
@@ -40,7 +40,6 @@ export default function ProductDetailsPage() {
         if (data.success && data.data) {
           setProduct(data.data);
           setSelectedSize(data.data.sizes?.[0] || '');
-          setSelectedColor(data.data.colors?.[0] || '');
         } else {
           console.error('Product not found:', data.error);
           router.push('/products');
@@ -62,14 +61,14 @@ export default function ProductDetailsPage() {
       return;
     }
 
-    if (!selectedSize || !selectedColor) {
-      alert('Please select size and color');
+    if (!selectedSize) {
+      alert('Please select size');
       return;
     }
 
     setAddingToCart(true);
     try {
-      await addToCart(params.id as string, quantity, selectedSize, selectedColor);
+      await addToCart(params.id as string, quantity, selectedSize);
       alert('Product added to cart successfully!');
     } catch (error) {
       console.error('Failed to add to cart:', error);
@@ -113,13 +112,12 @@ export default function ProductDetailsPage() {
         <div className="product-details">
           <div className="product-image-section">
             <div className="main-image">
-              <img 
+              <Image 
                 src={product.image || '/placeholder-shoe.jpg'} 
                 alt={product.name}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/placeholder-shoe.jpg';
-                }}
+                width={500}
+                height={500}
+                className="main-product-image"
               />
             </div>
           </div>
@@ -147,21 +145,6 @@ export default function ProductDetailsPage() {
                       onClick={() => setSelectedSize(size)}
                     >
                       {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="option-group">
-                <label>Color:</label>
-                <div className="color-options">
-                  {product.colors.map((color) => (
-                    <button
-                      key={color}
-                      className={`color-btn ${selectedColor === color ? 'selected' : ''}`}
-                      onClick={() => setSelectedColor(color)}
-                    >
-                      {color}
                     </button>
                   ))}
                 </div>
@@ -209,9 +192,6 @@ export default function ProductDetailsPage() {
             <div className="product-meta">
               <div className="meta-item">
                 <strong>Category:</strong> {product.category}
-              </div>
-              <div className="meta-item">
-                <strong>Gender:</strong> {product.gender}
               </div>
               <div className="meta-item">
                 <strong>Stock:</strong> {product.stock} available

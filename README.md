@@ -4,7 +4,7 @@ Live: https://shoe-bay247.vercel.app/
 
 ## Overview
 
-Shoe Bay 247 is a conversational e‑commerce web app for discovering and buying shoes. It combines a classic product browsing experience with an AI shopping assistant, secure auth, cart and checkout, and order tracking. Built with Next.js, MongoDB, TypeScript, and Groq (Llama 3.1).
+Shoe Bay 247 is a conversational e‑commerce web app for discovering and buying shoes. It combines a classic product browsing experience with an AI shopping assistant, secure auth, cart and checkout, and order tracking. Built with Next.js, MongoDB, TypeScript, and Google Gemini (gemini-3.5-flash-lite).
 
 ## Features
 
@@ -48,15 +48,15 @@ Shoe Bay 247 is a conversational e‑commerce web app for discovering and buying
 
 8) Use the AI Chatbot
 - What it can do:
-	- Find shoes by category, brand, color, or size.
-	- Add items to your cart directly from chat (specify name/brand, color, size, and quantity).
+	- Find shoes by category, brand, or size.
+	- Add items to your cart directly from chat (specify name/brand, size, and quantity).
 	- Show your cart or remove specific items.
 	- Start checkout from chat. In-chat orders are placed as Cash on Delivery. For online payment (e.g., bKash), proceed via the regular checkout page.
 
 - Example prompts:
-	- "Add Nike Air Max, black, size 9 to my cart"
+	- "Add Nike Air Max, size 9 to my cart"
 	- "What's in my cart?"
-	- "Remove the red sneakers size 8"
+	- "Remove the sneakers size 8"
 	- "I'm ready to checkout"
 
 - Notes:
@@ -68,7 +68,7 @@ Shoe Bay 247 is a conversational e‑commerce web app for discovering and buying
 - Next.js 15, React, TypeScript, SCSS
 - API Routes (Node.js) + MongoDB (Mongoose)
 - Auth with NextAuth
-- AI via Groq (Llama 3.1 8B Instant)
+- AI via Google Gemini (gemini-3.5-flash-lite)
 
 ## Demo Data & Images
 
@@ -76,7 +76,7 @@ Shoe Bay 247 is a conversational e‑commerce web app for discovering and buying
 
 ## Run Locally (optional)
 
-Prereqs: Node 18+, MongoDB, Groq API key.
+Prereqs: Node 18+, MongoDB, Google Gemini API key.
 
 1) Install dependencies
 ```
@@ -85,7 +85,7 @@ npm install
 2) Configure environment (.env.local)
 ```
 MONGODB_URI=your_mongodb_uri
-GROQ_API_KEY=your_groq_api_key
+GEMINI_API_KEY=your_gemini_api_key
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your_secret
 JWT_SECRET=your_jwt_secret

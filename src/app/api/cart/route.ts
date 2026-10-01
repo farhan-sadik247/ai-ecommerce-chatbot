@@ -14,7 +14,7 @@ interface PopulatedCartItem {
   };
   quantity: number;
   size: string;
-  color: string;
+  
   price: number;
 }
 
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         product: item.productId, // Map populated productId to product
         quantity: item.quantity,
         size: item.size,
-        color: item.color,
+        
         price: item.price
       }))
     };
@@ -83,13 +83,13 @@ export async function POST(request: NextRequest) {
       }, { status: 401 });
     }
 
-    const { productId, quantity, size, color } = await request.json();
+    const { productId, quantity, size } = await request.json();
 
     // Validate required fields
-    if (!productId || !quantity || !size || !color) {
+    if (!productId || !quantity || !size ) {
       return NextResponse.json<ApiResponse>({
         success: false,
-        error: 'Product ID, quantity, size, and color are required'
+        error: 'Product ID, quantity, size, and are required'
       }, { status: 400 });
     }
 
@@ -125,13 +125,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    if (!product.colors.includes(color)) {
-      return NextResponse.json<ApiResponse>({
-        success: false,
-        error: 'Invalid color for this product'
-      }, { status: 400 });
-    }
-
     // Find or create cart
     let cart = await Cart.findOne({ userId: user._id });
     if (!cart) {
@@ -143,7 +136,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Add item to cart
-    await cart.addItem(productId, quantity, size, color, product.price);
+    console.log("ADDING ITEM TO CART. Product Price:", product.price, "Type:", typeof product.price);
+    console.log("Cart Items before push:", cart.items.length);
+    await cart.addItem(productId, quantity, size, product.price);
+    console.log("Cart items after push:", JSON.stringify(cart.items, null, 2));
     await cart.save();
 
     // Populate cart items for response
@@ -157,7 +153,7 @@ export async function POST(request: NextRequest) {
         product: item.productId, // Map populated productId to product
         quantity: item.quantity,
         size: item.size,
-        color: item.color,
+        
         price: item.price
       }))
     };
@@ -190,13 +186,13 @@ export async function PUT(request: NextRequest) {
       }, { status: 401 });
     }
 
-    const { productId, quantity, size, color } = await request.json();
+    const { productId, quantity, size } = await request.json();
 
     // Validate required fields
-    if (!productId || quantity === undefined || !size || !color) {
+    if (!productId || quantity === undefined || !size ) {
       return NextResponse.json<ApiResponse>({
         success: false,
-        error: 'Product ID, quantity, size, and color are required'
+        error: 'Product ID, quantity, size, and are required'
       }, { status: 400 });
     }
 
@@ -217,7 +213,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update item quantity (will remove if quantity is 0)
-    await cart.updateQuantity(productId, size, color, quantity);
+    await cart.updateQuantity(productId, size, quantity);
     await cart.save();
 
     // Populate cart items for response
@@ -231,7 +227,7 @@ export async function PUT(request: NextRequest) {
         product: item.productId, // Map populated productId to product
         quantity: item.quantity,
         size: item.size,
-        color: item.color,
+        
         price: item.price
       }))
     };

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { ApiResponse } from '@/types';
@@ -47,16 +49,15 @@ export default function ChatWidget({ className }: ChatWidgetProps) {
       // Convert **bold** to <strong>
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       // Convert *italic* to <em>
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/(?<!<[^>]*)\*(.*?)\*(?![^<]*>)/g, '<em>$1</em>')
       // Convert bullet points (• or -)
       .replace(/^[•-]\s*(.*$)/gim, '<li>$1</li>')
       // Convert numbered lists
       .replace(/^\d+\.\s*(.*$)/gim, '<li>$1</li>')
-      // Convert price patterns like $99.99 or ৳1,500
-      .replace(/(\$\d+(?:\.\d{2})?|৳[\d,]+)/g, '<span class="price">$1</span>')
-      // Convert product names in quotes or after **
-      .replace(/"([^"]+)"/g, '<span class="product-name">"$1"</span>')
-      .replace(/\*\*([^*]+)\*\*/g, '<span class="product-name">$1</span>');
+      // Convert price patterns like $99.99
+      .replace(/(\$\d+(?:\.\d{2})?)/g, '<span class="price">$1</span>')
+      // Convert product names in quotes
+      .replace(/"([^"]+)"/g, '<span class="product-name">"$1"</span>');
 
     // Split by double line breaks to create sections
     const sections = formatted.split(/\n\s*\n/);
@@ -275,17 +276,21 @@ export default function ChatWidget({ className }: ChatWidgetProps) {
                   {msg.products && msg.products.length > 0 && (
                     <div className="product-suggestions">
                       {msg.products.map((product, index) => (
-                        <div key={index} className="product-card">
+                        <Link href={`/products/${product._id}`} key={index} className="product-card" onClick={toggleChat}>
+                          {product.image && (
+                            <div className="product-image">
+                              <Image src={product.image} alt={product.name} width={64} height={64} />
+                            </div>
+                          )}
                           <div className="product-info">
                             <h4>{product.name}</h4>
                             <p className="brand">{product.brand}</p>
                             <p className="price">${product.price}</p>
                             <div className="product-details">
-                              <span className="colors">Colors: {product.colors.join(', ')}</span>
                               <span className="sizes">Sizes: {product.sizes.join(', ')}</span>
                             </div>
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   )}
@@ -347,8 +352,8 @@ export default function ChatWidget({ className }: ChatWidgetProps) {
               </button>
             </div>
             <div className="input-suggestions">
-              <button onClick={() => setInputMessage("Show me running shoes")}>
-                🏃 Running shoes
+              <button onClick={() => setInputMessage("Show me some boots")}>
+                🥾 Show boots
               </button>
               <button onClick={() => setInputMessage("What's in my cart?")}>
                 🛒 View cart

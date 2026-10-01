@@ -4,7 +4,6 @@ export interface ICartItem {
   productId: mongoose.Types.ObjectId;
   quantity: number;
   size: string;
-  color: string;
   price: number;
 }
 
@@ -15,9 +14,9 @@ export interface ICart extends Document {
   createdAt: Date;
   updatedAt: Date;
   calculateTotal(): Promise<number>;
-  addItem(productId: string, quantity: number, size: string, color: string, price: number): Promise<void>;
-  removeItem(productId: string, size: string, color: string): Promise<void>;
-  updateQuantity(productId: string, size: string, color: string, quantity: number): Promise<void>;
+  addItem(productId: string, quantity: number, size: string, price: number): Promise<void>;
+  removeItem(productId: string, size: string): Promise<void>;
+  updateQuantity(productId: string, size: string, quantity: number): Promise<void>;
   clearCart(): Promise<void>;
 }
 
@@ -37,11 +36,6 @@ const CartItemSchema = new Schema<ICartItem>({
     type: String,
     required: true,
     enum: ['5', '5.5', '6', '6.5', '7', '7.5', '8', '8.5', '9', '9.5', '10', '10.5', '11', '11.5', '12', '12.5', '13']
-  },
-  color: {
-    type: String,
-    required: true,
-    trim: true
   },
   price: {
     type: Number,
@@ -84,13 +78,11 @@ CartSchema.methods.addItem = async function(
   productId: string, 
   quantity: number, 
   size: string, 
-  color: string, 
   price: number
 ): Promise<void> {
   const existingItemIndex = this.items.findIndex((item: ICartItem) => 
     item.productId.toString() === productId && 
-    item.size === size && 
-    item.color === color
+    item.size === size
   );
 
   if (existingItemIndex > -1) {
@@ -105,7 +97,6 @@ CartSchema.methods.addItem = async function(
       productId: new mongoose.Types.ObjectId(productId),
       quantity,
       size,
-      color,
       price
     });
   }
@@ -116,13 +107,11 @@ CartSchema.methods.addItem = async function(
 // Remove item from cart
 CartSchema.methods.removeItem = async function(
   productId: string, 
-  size: string, 
-  color: string
+  size: string
 ): Promise<void> {
   this.items = this.items.filter((item: ICartItem) => 
     !(item.productId.toString() === productId && 
-      item.size === size && 
-      item.color === color)
+      item.size === size)
   );
 
   await this.calculateTotal();
@@ -132,13 +121,11 @@ CartSchema.methods.removeItem = async function(
 CartSchema.methods.updateQuantity = async function(
   productId: string, 
   size: string, 
-  color: string, 
   quantity: number
 ): Promise<void> {
   const itemIndex = this.items.findIndex((item: ICartItem) => 
     item.productId.toString() === productId && 
-    item.size === size && 
-    item.color === color
+    item.size === size
   );
 
   if (itemIndex > -1) {

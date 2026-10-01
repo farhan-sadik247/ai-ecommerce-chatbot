@@ -18,7 +18,7 @@ export default function AddToCartModal({ product, isOpen, onClose, onSuccess }: 
   const { user } = useAuth();
   const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
+  
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,7 +41,7 @@ export default function AddToCartModal({ product, isOpen, onClose, onSuccess }: 
 
   const handleClose = useCallback(() => {
     setSelectedSize('');
-    setSelectedColor('');
+    
     setQuantity(1);
     setError('');
     onClose();
@@ -63,16 +63,11 @@ export default function AddToCartModal({ product, isOpen, onClose, onSuccess }: 
       return;
     }
 
-    if (!selectedColor) {
-      setError('Please select a color');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
     try {
-      const success = await addToCart(product._id, quantity, selectedSize, selectedColor);
+      const success = await addToCart(product._id, quantity, selectedSize);
       
       if (success) {
         if (onSuccess) onSuccess();
@@ -82,7 +77,7 @@ export default function AddToCartModal({ product, isOpen, onClose, onSuccess }: 
         onClose();
         // Reset form
         setSelectedSize('');
-        setSelectedColor('');
+        
         setQuantity(1);
       } else {
         setError('Failed to add item to cart');
@@ -145,21 +140,6 @@ export default function AddToCartModal({ product, isOpen, onClose, onSuccess }: 
             </div>
 
             <div className="option-group">
-              <label>Color:</label>
-              <div className="color-options">
-                {product.colors.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`color-option ${selectedColor === color ? 'selected' : ''}`}
-                  >
-                    {color}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="option-group">
               <label>Quantity:</label>
               <div className="quantity-controls">
                 <button
@@ -191,7 +171,7 @@ export default function AddToCartModal({ product, isOpen, onClose, onSuccess }: 
             </button>
             <button
               onClick={handleAddToCart}
-              disabled={loading || !selectedSize || !selectedColor}
+              disabled={loading || !selectedSize}
               className="add-to-cart-btn"
             >
               {loading ? 'Adding...' : `Add to Cart - $${(product.price * quantity).toFixed(2)}`}

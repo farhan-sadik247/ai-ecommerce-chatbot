@@ -65,19 +65,6 @@ export default function ProductCard({ product, onViewDetails }: ProductCardProps
         <div className="product-details">
           <div className="product-category">
             <span className="category-badge">{product.category}</span>
-            <span className="gender-badge">{product.gender}</span>
-          </div>
-
-          <div className="product-colors">
-            <span className="colors-label">Colors:</span>
-            <div className="colors-list">
-              {product.colors.slice(0, 3).map((color, index) => (
-                <span key={index} className="color-item">{color}</span>
-              ))}
-              {product.colors.length > 3 && (
-                <span className="color-more">+{product.colors.length - 3} more</span>
-              )}
-            </div>
           </div>
 
           <div className="product-sizes">

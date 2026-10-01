@@ -7,10 +7,8 @@ export interface IProduct extends Document {
   image: string;
   category: string;
   sizes: string[];
-  colors: string[];
   stock: number;
   brand: string;
-  gender: 'men' | 'women' | 'unisex';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,11 +50,6 @@ const ProductSchema = new Schema<IProduct>({
       message: 'Invalid shoe size'
     }
   }],
-  colors: [{
-    type: String,
-    required: true,
-    trim: true
-  }],
   stock: {
     type: Number,
     required: [true, 'Stock quantity is required'],
@@ -68,14 +61,6 @@ const ProductSchema = new Schema<IProduct>({
     required: [true, 'Brand is required'],
     trim: true,
     maxlength: [50, 'Brand name cannot exceed 50 characters']
-  },
-  gender: {
-    type: String,
-    required: [true, 'Gender category is required'],
-    enum: {
-      values: ['men', 'women', 'unisex'],
-      message: 'Gender must be one of: men, women, unisex'
-    }
   }
 }, {
   timestamps: true
@@ -84,7 +69,6 @@ const ProductSchema = new Schema<IProduct>({
 // Indexes for better query performance
 ProductSchema.index({ category: 1 });
 ProductSchema.index({ brand: 1 });
-ProductSchema.index({ gender: 1 });
 ProductSchema.index({ price: 1 });
 ProductSchema.index({ name: 'text', description: 'text' }); // Text search index
 

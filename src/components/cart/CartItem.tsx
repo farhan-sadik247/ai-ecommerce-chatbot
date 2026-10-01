@@ -30,7 +30,7 @@ export default function CartItem({ item }: CartItemProps) {
       await updateQuantity(
         item.productId.toString(), 
         item.size, 
-        item.color, 
+         
         newQuantity
       );
     } finally {
@@ -44,7 +44,7 @@ export default function CartItem({ item }: CartItemProps) {
       await removeFromCart(
         item.productId.toString(), 
         item.size, 
-        item.color
+        
       );
     } finally {
       setUpdating(false);
@@ -73,7 +73,7 @@ export default function CartItem({ item }: CartItemProps) {
 
         <div className="cart-item-options">
           <span className="option">Size: {item.size}</span>
-          <span className="option">Color: {item.color}</span>
+          <span className="option">Color: {}</span>
         </div>
 
         <div className="cart-item-price">

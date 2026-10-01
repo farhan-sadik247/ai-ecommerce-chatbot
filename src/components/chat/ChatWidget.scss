@@ -20,7 +20,7 @@
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
     border: none;
     color: white;
     cursor: pointer;
@@ -84,26 +84,28 @@
     position: absolute;
     bottom: 80px;
     right: 0;
-    width: 380px;
-    height: 600px;
+    width: 400px;
+    height: 620px;
 
-    @media (max-width: 768px) {
-      width: 340px;
-      height: 500px;
-      bottom: 70px;
-    }
-
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px;
+    box-shadow: 0 16px 60px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(124, 58, 237, 0.15);
 
     @media (max-width: 768px) {
-      border-radius: 16px;
+      width: 360px;
+      height: 520px;
+      bottom: 70px;
+    }
+
+    @media (max-width: 768px) {
+      border-radius: 20px;
       box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
     }
 
@@ -115,7 +117,7 @@
       bottom: 10px;
       width: calc(100vw - 20px);
       height: calc(100vh - 20px);
-      border-radius: 12px;
+      border-radius: 16px;
       z-index: 9999;
       max-height: calc(100vh - 20px);
     }
@@ -123,7 +125,7 @@
 
   // Header
   .chat-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
     color: white;
     padding: 20px;
     display: flex;
@@ -220,13 +222,13 @@
     padding: 20px;
     display: flex;
     flex-direction: column;
+    gap: 16px;
+    background: #f8fafc;
 
     @media (max-width: 480px) {
       padding: 12px;
       gap: 8px;
     }
-    gap: 16px;
-    background: #f8fafc;
 
     &::-webkit-scrollbar {
       width: 4px;
@@ -254,7 +256,7 @@
         }
 
         .message-bubble {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
           color: white !important;
 
           * {
@@ -267,7 +269,7 @@
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -335,7 +337,7 @@
 
               &::before {
                 content: '•';
-                color: #667eea;
+                color: #7C3AED;
                 font-weight: bold;
                 position: absolute;
                 left: 0;
@@ -427,51 +429,82 @@
   .product-suggestions {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-top: 8px;
+    gap: 12px;
+    margin-top: 10px;
 
     .product-card {
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       background: white;
       border: 1px solid #e2e8f0;
       border-radius: 12px;
-      padding: 12px;
-      transition: all 0.2s ease;
+      padding: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
 
       &:hover {
-        border-color: #667eea;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        border-color: #7C3AED;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(124, 58, 237, 0.15);
+      }
+
+      .product-image {
+        width: 64px;
+        height: 64px;
+        border-radius: 8px;
+        background: #f8fafc;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          mix-blend-mode: multiply;
+        }
       }
 
       .product-info {
+        flex: 1;
+        min-width: 0; // Prevent flex overflow
+        
         h4 {
           margin: 0 0 4px 0;
           font-size: 14px;
           font-weight: 600;
           color: #1e293b;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .brand {
-          margin: 0 0 4px 0;
           font-size: 12px;
           color: #64748b;
+          margin: 0 0 6px 0;
         }
 
         .price {
-          margin: 0 0 8px 0;
-          font-size: 16px;
           font-weight: 700;
-          color: #667eea;
+          color: #7C3AED;
+          font-size: 14px;
+          margin: 0 0 4px 0;
         }
 
         .product-details {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
+          font-size: 11px;
+          color: #94a3b8;
 
-          span {
-            font-size: 11px;
-            color: #64748b;
+          .sizes {
+            display: inline-block;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
           }
         }
       }
@@ -518,7 +551,7 @@
         max-height: 100px;
 
         &:focus {
-          border-color: #667eea;
+          border-color: #7C3AED;
         }
 
         &::placeholder {
@@ -530,7 +563,7 @@
         width: 44px;
         height: 44px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%);
         border: none;
         color: white;
         cursor: pointer;
@@ -572,9 +605,9 @@
         transition: all 0.2s ease;
 
         &:hover {
-          background: #667eea;
+          background: #7C3AED;
           color: white;
-          border-color: #667eea;
+          border-color: #7C3AED;
         }
       }
     }

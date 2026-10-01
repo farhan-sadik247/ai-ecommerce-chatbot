@@ -25,10 +25,10 @@ export interface Product {
   image: string;
   category: string;
   sizes: string[];
-  colors: string[];
+  
   stock: number;
   brand: string;
-  gender: 'men' | 'women' | 'unisex';
+  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,7 +39,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   size: string;
-  color: string;
+  
   price: number;
 }
 
@@ -103,6 +103,11 @@ export type ChatIntent =
   | 'remove_from_cart'
   | 'view_cart'
   | 'checkout'
+  | 'track_order'
+  | 'shipping_policy'
+  | 'return_policy'
+  | 'promotions'
+  | 'product_recommendation'
   | 'general_inquiry'
   | 'greeting'
   | 'unknown';
@@ -113,7 +118,7 @@ export interface ChatIntentResult {
     productName?: string;
     category?: string;
     size?: string;
-    color?: string;
+    
     quantity?: number;
   };
   confidence: number;
