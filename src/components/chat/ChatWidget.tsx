@@ -202,9 +202,6 @@ export default function ChatWidget({ className }: ChatWidgetProps) {
     setIsOpen(!isOpen);
   };
 
-  if (!user) {
-    return null; // Don't show chat if user is not logged in
-  }
 
   return (
     <div className={`chat-widget ${className || ''}`}>
@@ -259,68 +256,83 @@ export default function ChatWidget({ className }: ChatWidgetProps) {
 
           {/* Messages */}
           <div className="chat-messages">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`message ${msg.isUser ? 'user' : 'bot'}`}>
-                {!msg.isUser && (
-                  <div className="message-avatar">
-                    <span>🤖</span>
-                  </div>
-                )}
-                <div className="message-content">
-                  <div
-                    className="message-bubble"
-                    dangerouslySetInnerHTML={{
-                      __html: msg.isUser ? msg.message : formatMessage(msg.response || '')
-                    }}
-                  />
-                  {msg.products && msg.products.length > 0 && (
-                    <div className="product-suggestions">
-                      {msg.products.map((product, index) => (
-                        <Link href={`/products/${product._id}`} key={index} className="product-card" onClick={toggleChat}>
-                          {product.image && (
-                            <div className="product-image">
-                              <Image src={product.image} alt={product.name} width={64} height={64} />
-                            </div>
-                          )}
-                          <div className="product-info">
-                            <h4>{product.name}</h4>
-                            <p className="brand">{product.brand}</p>
-                            <p className="price">${product.price}</p>
-                            <div className="product-details">
-                              <span className="sizes">Sizes: {product.sizes.join(', ')}</span>
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                  <div className="message-time">
-                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-                {msg.isUser && (
-                  <div className="message-avatar user-avatar">
-                    <span>{user.name.charAt(0).toUpperCase()}</span>
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            {isLoading && (
+            {!user ? (
               <div className="message bot">
                 <div className="message-avatar">
                   <span>🤖</span>
                 </div>
                 <div className="message-content">
-                  <div className="message-bubble typing">
-                    <div className="typing-indicator">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
+                  <div className="message-bubble">
+                    Hello! I'm your AI ShoeBot Assistant. Please <strong>Log In</strong> or <strong>Register</strong> using the buttons in the top right to start chatting with me and find your perfect pair of shoes!
                   </div>
                 </div>
               </div>
+            ) : (
+              <>
+                {messages.map((msg) => (
+                  <div key={msg.id} className={`message ${msg.isUser ? 'user' : 'bot'}`}>
+                    {!msg.isUser && (
+                      <div className="message-avatar">
+                        <span>🤖</span>
+                      </div>
+                    )}
+                    <div className="message-content">
+                      <div
+                        className="message-bubble"
+                        dangerouslySetInnerHTML={{
+                          __html: msg.isUser ? msg.message : formatMessage(msg.response || '')
+                        }}
+                      />
+                      {msg.products && msg.products.length > 0 && (
+                        <div className="product-suggestions">
+                          {msg.products.map((product, index) => (
+                            <Link href={`/products/${product._id}`} key={index} className="product-card" onClick={toggleChat}>
+                              {product.image && (
+                                <div className="product-image">
+                                  <Image src={product.image} alt={product.name} width={64} height={64} />
+                                </div>
+                              )}
+                              <div className="product-info">
+                                <h4>{product.name}</h4>
+                                <p className="brand">{product.brand}</p>
+                                <p className="price">${product.price}</p>
+                                <div className="product-details">
+                                  <span className="sizes">Sizes: {product.sizes.join(', ')}</span>
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                      <div className="message-time">
+                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                    {msg.isUser && (
+                      <div className="message-avatar user-avatar">
+                        <span>{user?.name ? user.name.charAt(0).toUpperCase() : 'U'}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {isLoading && (
+                  <div className="message bot">
+                    <div className="message-avatar">
+                      <span>🤖</span>
+                    </div>
+                    <div className="message-content">
+                      <div className="message-bubble typing">
+                        <div className="typing-indicator">
+                          <span></span>
+                          <span></span>
+                          <span></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
             
             <div ref={messagesEndRef} />
@@ -335,13 +347,13 @@ export default function ChatWidget({ className }: ChatWidgetProps) {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask me about shoes, add to cart, or checkout..."
-                disabled={isLoading}
+                placeholder={user ? "Ask me about shoes, add to cart, or checkout..." : "Please log in to chat..."}
+                disabled={isLoading || !user}
                 className="message-input"
               />
               <button
                 onClick={handleSendMessage}
-                disabled={!inputMessage.trim() || isLoading}
+                disabled={!inputMessage.trim() || isLoading || !user}
                 className="send-button"
                 aria-label="Send message"
               >
@@ -351,17 +363,19 @@ export default function ChatWidget({ className }: ChatWidgetProps) {
                 </svg>
               </button>
             </div>
-            <div className="input-suggestions">
-              <button onClick={() => setInputMessage("Show me some boots")}>
-                🥾 Show boots
-              </button>
-              <button onClick={() => setInputMessage("What's in my cart?")}>
-                🛒 View cart
-              </button>
-              <button onClick={() => setInputMessage("I'm ready to checkout")}>
-                💳 Checkout
-              </button>
-            </div>
+            {user && (
+              <div className="input-suggestions">
+                <button onClick={() => setInputMessage("Show me some boots")}>
+                  🥾 Show boots
+                </button>
+                <button onClick={() => setInputMessage("What's in my cart?")}>
+                  🛒 View cart
+                </button>
+                <button onClick={() => setInputMessage("I'm ready to checkout")}>
+                  💳 Checkout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

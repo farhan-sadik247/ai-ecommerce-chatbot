@@ -86,6 +86,7 @@
     right: 0;
     width: 400px;
     height: 620px;
+    max-height: calc(100vh - 200px); // Accurately calculates fixed bottom offset + header height
 
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(24px);
@@ -102,6 +103,7 @@
       width: 360px;
       height: 520px;
       bottom: 70px;
+      max-height: calc(100vh - 180px);
     }
 
     @media (max-width: 768px) {
